@@ -1,3 +1,35 @@
-export default function Page() {
-  return <div>BMS Difficulty Table</div>;
+import { config } from "@/lib/config";
+import { fetchTableData } from "@/lib/fetch-table-data";
+import { TableView } from "@/components/TableView";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+
+export default async function Page() {
+  const entries = await fetchTableData();
+
+  return (
+    <div className="min-h-screen">
+      <header className="navbar bg-base-200">
+        <div className="flex-1">
+          <span className="text-xl font-bold px-4">{config.name}</span>
+        </div>
+        <div className="flex-none px-4">
+          <ThemeSwitcher />
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-6">
+        {config.siteDescription && (
+          <div className="alert mb-6">
+            <p>{config.siteDescription}</p>
+          </div>
+        )}
+
+        <TableView
+          entries={entries}
+          symbol={config.symbol}
+          levelOrder={config.levelOrder}
+        />
+      </main>
+    </div>
+  );
 }
