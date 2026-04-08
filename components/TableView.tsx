@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { TableEntry } from "@/lib/fetch-table-data";
 
 interface TableViewProps {
@@ -57,8 +58,8 @@ export function TableView({ entries, symbol, levelOrder }: TableViewProps) {
       </thead>
       <tbody>
         {Array.from(grouped).map(([level, levelEntries]) => (
-          <>
-            <tr key={`header-${level}`} className="bg-base-300 text-center">
+          <Fragment key={`level-${level}`}>
+            <tr className="bg-base-300 text-center">
               <td colSpan={3} className="font-bold">
                 {symbol}
                 {level} ({levelEntries.length}譜面)
@@ -83,7 +84,7 @@ export function TableView({ entries, symbol, levelOrder }: TableViewProps) {
                 <td>{entry.artist || ""}</td>
               </tr>
             ))}
-          </>
+          </Fragment>
         ))}
       </tbody>
     </table>
