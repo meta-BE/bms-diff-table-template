@@ -7,7 +7,19 @@
 ## ビルド
 - `npm run build` — ビルド（`prebuild` で CSS 自動生成が走る）
 - `npm run dev` — 開発サーバー（`predev` で CSS 自動生成が走る）
+- `npm start` — プロダクションサーバー起動
+- `npm run lint` — ESLint 実行
 - `npm test` — Vitest でテスト実行
+- `npm run test:watch` — Vitest ウォッチモード
+
+## アーキテクチャ
+- `app/page.tsx` — トップページ（譜面一覧表示）
+- `app/data.json/`, `app/header.json/` — ISR対応のRoute Handler（外部JSONを中継）
+- `components/` — TableView（譜面テーブル）, ThemeProvider, ThemeSwitcher
+- `lib/config.ts` — `table.config.json` の型付け・デフォルト値適用
+- `lib/fetch-table-data.ts` — 外部データ取得ロジック
+- `scripts/generate-css.mjs` — `table.config.json` からCSS自動生成
+- `__tests__/` — Vitest テスト（config, fetch, Route Handler）
 
 ## 重要な注意点
 
