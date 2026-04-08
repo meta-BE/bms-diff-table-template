@@ -6,6 +6,7 @@ type ThemeMode = "light" | "dark" | "system";
 
 interface ThemeContextValue {
   mode: ThemeMode;
+  resolved: "light" | "dark";
   setMode: (mode: ThemeMode) => void;
   configDarkMode: ThemeMode;
 }
@@ -71,7 +72,7 @@ export function ThemeProvider({
   const theme = resolved === "dark" ? darkTheme : lightTheme;
 
   return (
-    <ThemeContext.Provider value={{ mode, setMode, configDarkMode: darkMode }}>
+    <ThemeContext.Provider value={{ mode, resolved, setMode, configDarkMode: darkMode }}>
       <div data-theme={theme} className="min-h-screen">
         {children}
       </div>
