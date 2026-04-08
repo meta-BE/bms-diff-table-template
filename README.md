@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BMS難易度表テンプレート
 
-## Getting Started
+BMS難易度表を簡単にホスティングできるテンプレートです。
+フォークして設定ファイルを編集するだけで、高速な難易度表サイトが立ち上がります。
 
-First, run the development server:
+## 特徴
+
+- GAS（Google Apps Script）や任意のJSONソースからデータを取得
+- ISR（Incremental Static Regeneration）によるキャッシュで常に高速レスポンス
+- beatoraja / ELSA 等のBMSクライアントから直接読み込み可能（BMSTable形式互換）
+- daisyUI テーマによる外観カスタマイズ
+- ダークモード対応（ライト / ダーク / システム設定準拠）
+
+## セットアップ手順
+
+### 1. リポジトリをフォーク
+
+このリポジトリの「Use this template」ボタンまたは「Fork」ボタンから、自分のアカウントにコピーしてください。
+
+### 2. 設定ファイルを編集
+
+`table.config.json` を開き、以下の必須項目を編集してください:
+
+| 項目 | 説明 | 例 |
+|---|---|---|
+| `name` | 難易度表の名前 | `"My BMS Table"` |
+| `symbol` | レベル表記の接頭辞 | `"★"`, `"st"`, `"✡"` |
+| `dataUrl` | 譜面データJSONのURL | GASのexec URL、静的JSONのURL等 |
+
+その他のオプション項目:
+
+| 項目 | デフォルト | 説明 |
+|---|---|---|
+| `revalidate` | `3600` | データの再取得間隔（秒） |
+| `siteDescription` | `""` | サイトの説明文 |
+| `lightTheme` | `"light"` | ライトモード時のdaisyUIテーマ名 |
+| `darkTheme` | `"dark"` | ダークモード時のdaisyUIテーマ名 |
+| `darkMode` | `"system"` | `"light"` / `"dark"` / `"system"` |
+| `levelOrder` | `[]` | レベルの表示順序（空の場合はデータ出現順） |
+| `course` | `[]` | 段位認定データ |
+
+利用可能なテーマの一覧は [daisyUI Themes](https://daisyui.com/docs/themes/) を参照してください。
+
+### 3. Vercelにデプロイ
+
+1. [Vercel](https://vercel.com/) にGitHubアカウントでサインアップ
+2. ダッシュボードで「Add New Project」→ フォークしたリポジトリを選択
+3. そのまま「Deploy」をクリック
+
+以上で完了です。
+
+### 4. 運用
+
+- GASのスプレッドシートを更新すると、`revalidate` 秒後にサイトに自動反映されます
+- `table.config.json` を変更してpushすると、Vercelが自動的に再デプロイします
+
+## BMSクライアントからの読み込み
+
+デプロイされたサイトのURLをBMSクライアントの難易度表URLとして登録してください。
+
+- beatoraja: 難易度表追加で `https://your-site.vercel.app/` を入力
+- ELSA: 難易度表設定で同様のURLを入力
+
+`/header.json` と `/data.json` が自動的に配信されます。
+
+## 開発
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ライセンス
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
