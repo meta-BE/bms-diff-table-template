@@ -1,10 +1,12 @@
 import { config } from "@/lib/config";
 import { fetchTableData } from "@/lib/fetch-table-data";
+import { loadDescription } from "@/lib/load-description";
 import { TableView } from "@/components/TableView";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 export default async function Page() {
   const entries = await fetchTableData();
+  const descriptionHtml = loadDescription();
 
   return (
     <div className="min-h-screen">
@@ -18,11 +20,16 @@ export default async function Page() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {config.siteDescription && (
+        {descriptionHtml ? (
+          <div
+            className="prose mb-6"
+            dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+          />
+        ) : config.siteDescription ? (
           <div className="alert mb-6">
             <p>{config.siteDescription}</p>
           </div>
-        )}
+        ) : null}
 
         <TableView
           entries={entries}
