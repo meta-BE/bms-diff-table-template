@@ -42,3 +42,7 @@ next-env.d.ts
 
 # ビルド時に自動生成されるCSSファイル
 app/globals.css
+
+# ignore by user
+CLAUDE.md
+docs/**
