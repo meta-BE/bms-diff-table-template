@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ビルド時に自動生成されるCSSファイル
+app/globals.css
