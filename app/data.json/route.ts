@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchTableData } from "@/lib/fetch-table-data";
-import { config } from "@/lib/config";
 
-export const revalidate = config.revalidate;
-
+// ISRのrevalidate間隔はfetchTableData内のnext.revalidateオプションで制御される
 export async function GET() {
   try {
     const data = await fetchTableData();
