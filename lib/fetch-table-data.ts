@@ -3,8 +3,6 @@ import { config } from "./config";
 export interface TableEntry {
   md5: string;
   level: string;
-  title?: string;
-  artist?: string;
   [key: string]: unknown;
 }
 

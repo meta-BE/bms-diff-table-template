@@ -37,6 +37,7 @@ export default async function Page() {
           entries={entries}
           symbol={config.symbol}
           levelOrder={config.levelOrder}
+          columns={config.columns}
         />
       </main>
     </div>
