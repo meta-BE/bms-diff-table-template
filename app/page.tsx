@@ -21,10 +21,12 @@ export default async function Page() {
 
       <main className="container mx-auto px-4 py-6">
         {descriptionHtml ? (
-          <div
-            className="prose mb-6"
-            dangerouslySetInnerHTML={{ __html: descriptionHtml }}
-          />
+          <div className="alert mb-6">
+            <div
+              className="prose"
+              dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+            />
+          </div>
         ) : config.siteDescription ? (
           <div className="alert mb-6">
             <p>{config.siteDescription}</p>

@@ -5,6 +5,7 @@ const lightTheme = config.lightTheme || "light";
 const darkTheme = config.darkTheme || "dark";
 
 const css = `@import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @plugin "daisyui" {
   themes: ${lightTheme} --default, ${darkTheme} --prefersdark;
 }
