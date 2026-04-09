@@ -89,12 +89,14 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
   return (
     <div className="table-grid w-full" role="table">
       {/* ヘッダー */}
-      <div className="font-bold bg-base-200 p-2" role="columnheader">Level</div>
-      {columns.map((col) => (
-        <div key={col.header} className="font-bold bg-base-200 p-2" role="columnheader">
-          {col.header}
-        </div>
-      ))}
+      <div className="contents" role="row">
+        <div className="font-bold bg-base-200 p-2" role="columnheader">Level</div>
+        {columns.map((col, i) => (
+          <div key={`${col.header}-${i}`} className="font-bold bg-base-200 p-2" role="columnheader">
+            {col.header}
+          </div>
+        ))}
+      </div>
 
       {/* ボディ */}
       {Array.from(grouped).map(([level, levelEntries]) => (
@@ -106,16 +108,16 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
 
           {/* 行 */}
           {levelEntries.map((entry) => (
-            <Fragment key={entry.md5}>
+            <div key={entry.md5} className="contents" role="row">
               <div className="p-2 border-b border-base-200" role="cell">
                 {symbol}{level}
               </div>
-              {columns.map((col) => (
-                <div key={col.header} className="p-2 border-b border-base-200" role="cell">
+              {columns.map((col, i) => (
+                <div key={`${col.header}-${i}`} className="p-2 border-b border-base-200" role="cell">
                   <CellContent column={col} entry={entry} />
                 </div>
               ))}
-            </Fragment>
+            </div>
           ))}
         </Fragment>
       ))}
