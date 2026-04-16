@@ -23,7 +23,7 @@ export default async function Page() {
         {descriptionHtml ? (
           <div className="alert mb-6">
             <div
-              className="prose"
+              className="prose max-w-none"
               dangerouslySetInnerHTML={{ __html: descriptionHtml }}
             />
           </div>
