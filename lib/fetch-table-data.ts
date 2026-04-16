@@ -11,7 +11,7 @@ export async function fetchTableData(
 ): Promise<TableEntry[]> {
   const res = await fetch(url, {
     redirect: "follow",
-    next: { revalidate: config.revalidate },
+    next: { revalidate: 300 },
   });
 
   if (!res.ok) {

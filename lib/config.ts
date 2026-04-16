@@ -35,7 +35,6 @@ export interface TableConfig {
   name: string;
   symbol: string;
   dataUrl: string;
-  revalidate: number;
   siteDescription: string;
   lightTheme: string;
   darkTheme: string;
@@ -46,7 +45,6 @@ export interface TableConfig {
 }
 
 const defaults: Omit<TableConfig, "name" | "symbol" | "dataUrl"> = {
-  revalidate: 3600,
   siteDescription: "",
   lightTheme: "light",
   darkTheme: "dark",

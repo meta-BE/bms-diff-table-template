@@ -10,8 +10,6 @@ describe("config", () => {
 
   it("デフォルト値が適用される", async () => {
     const { config } = await import("@/lib/config");
-    expect(config.revalidate).toBeTypeOf("number");
-    expect(config.revalidate).toBeGreaterThan(0);
     expect(config.siteDescription).toBeTypeOf("string");
     expect(config.lightTheme).toBeTypeOf("string");
     expect(config.darkTheme).toBeTypeOf("string");

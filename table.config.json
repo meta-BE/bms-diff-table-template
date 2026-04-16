@@ -2,7 +2,6 @@
   "name": "meta自作差分一覧",
   "symbol": "Σ",
   "dataUrl": "https://bms.congenial-spirits.com/data.json",
-  "revalidate": 3600,
   "siteDescription": "サンプルの難易度表です。table.config.json を編集してカスタマイズしてください。",
   "lightTheme": "light",
   "darkTheme": "dark",

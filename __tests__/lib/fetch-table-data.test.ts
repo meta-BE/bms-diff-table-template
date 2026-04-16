@@ -23,7 +23,7 @@ describe("fetchTableData", () => {
     expect(result).toEqual(mockData);
     expect(fetch).toHaveBeenCalledWith("https://example.com/data.json", {
       redirect: "follow",
-      next: expect.objectContaining({ revalidate: expect.any(Number) }),
+      next: { revalidate: 300 },
     });
   });
 

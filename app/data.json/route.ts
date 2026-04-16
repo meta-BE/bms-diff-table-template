@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchTableData } from "@/lib/fetch-table-data";
 
-// Route Handler自体のISR間隔（静的リテラルのみ許可）
-// データキャッシュはfetchTableData内のnext.revalidateオプション（config.revalidate）で別途制御される
+// ISR間隔（静的リテラルのみ許可。fetch-table-data.ts 側も同じ値）
 export const revalidate = 300;
 
 export async function GET() {
