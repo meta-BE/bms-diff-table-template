@@ -9,11 +9,11 @@
   "levelOrder": [],
   "course": [],
   "columns": [
-    { "header": "Title", "type": "link", "property": "title", "url": "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5={{md5}}", "width": "40%" },
+    { "header": "Title", "type": "link", "property": "title", "url": "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5={{md5}}", "width": "30%" },
     { "header": "Artist", "type": "link", "property": "artist", "url": "{{url}}", "width": "25%" },
     { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}" },
     { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}" },
-    { "header": "Comment", "type": "text", "property": "comment", "width": "20%" },
+    { "header": "Comment", "type": "text", "property": "comment", "width": "30%" },
     { "header": "Rating", "type": "text", "property": "rating" },
     { "header": "Published", "type": "text", "property": "published" }
   ]
