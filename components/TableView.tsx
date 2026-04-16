@@ -49,6 +49,7 @@ function CellContent({ column, entry }: { column: ColumnDef; entry: TableEntry }
       return <>{value !== undefined && value !== null ? String(value) : ""}</>;
     }
     case "link": {
+      if (!(column.property in entry)) return null;
       const text = entry[column.property];
       const displayText = text !== undefined && text !== null ? String(text) : "";
       const url = resolveTemplate(column.url, entry);
