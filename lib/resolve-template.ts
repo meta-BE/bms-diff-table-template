@@ -1,4 +1,8 @@
-const PLACEHOLDER_RE = /\{\{(\w+)\}\}/g;
+export const PLACEHOLDER_RE = /\{\{(\w+)\}\}/g;
+
+export function extractPlaceholderKeys(template: string): string[] {
+  return Array.from(template.matchAll(PLACEHOLDER_RE), (m) => m[1]);
+}
 
 export function resolveTemplate(
   template: string,

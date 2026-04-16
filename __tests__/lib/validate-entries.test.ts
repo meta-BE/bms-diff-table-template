@@ -39,13 +39,13 @@ describe("validateEntries", () => {
     ];
     const result = validateEntries(baseEntries, columns);
     expect(result.issues).toHaveLength(1);
+    expect(result.totalEntries).toBe(2);
     expect(result.issues[0]).toMatchObject({
       level: "error",
       column: "Comment",
       detail: 'property: "comment"',
       message: "キー未定義",
       rows: [1, 2],
-      totalEntries: 2,
     });
   });
 
@@ -97,7 +97,7 @@ describe("validateEntries", () => {
     const result = validateEntries(entries, columns);
     expect(result.issues).toHaveLength(1);
     expect(result.issues[0].rows).toEqual([2]);
-    expect(result.issues[0].totalEntries).toBe(3);
+    expect(result.totalEntries).toBe(3);
   });
 
   it("link型: propertyとURLテンプレート両方に問題がある場合、別々のissueとして報告する", () => {

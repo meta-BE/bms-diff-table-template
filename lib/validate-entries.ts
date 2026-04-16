@@ -1,5 +1,6 @@
 import type { ColumnDef } from "./config";
 import type { TableEntry } from "./fetch-table-data";
+import { extractPlaceholderKeys } from "./resolve-template";
 
 export interface ValidationIssue {
   level: "error" | "warning";
@@ -7,17 +8,28 @@ export interface ValidationIssue {
   detail: string;
   message: string;
   rows: number[];
-  totalEntries: number;
 }
 
 export interface ValidationResult {
   issues: ValidationIssue[];
+  totalEntries: number;
 }
 
-const PLACEHOLDER_RE = /\{\{(\w+)\}\}/g;
-
-function extractPlaceholderKeys(template: string): string[] {
-  return Array.from(template.matchAll(PLACEHOLDER_RE), (m) => m[1]);
+function collectMissingKeyRows(
+  entries: TableEntry[],
+  key: string,
+  issueMap: Map<string, ValidationIssue>,
+  mapKey: string,
+  template: Omit<ValidationIssue, "rows">
+): void {
+  for (let i = 0; i < entries.length; i++) {
+    if (!(key in entries[i])) {
+      if (!issueMap.has(mapKey)) {
+        issueMap.set(mapKey, { ...template, rows: [] });
+      }
+      issueMap.get(mapKey)!.rows.push(i + 1);
+    }
+  }
 }
 
 export function validateEntries(
@@ -28,46 +40,25 @@ export function validateEntries(
 
   for (const column of columns) {
     if (column.type === "text" || column.type === "link") {
-      const mapKey = `${column.header}:property:${column.property}`;
-      for (let i = 0; i < entries.length; i++) {
-        if (!(column.property in entries[i])) {
-          if (!issueMap.has(mapKey)) {
-            issueMap.set(mapKey, {
-              level: "error",
-              column: column.header,
-              detail: `property: "${column.property}"`,
-              message: "キー未定義",
-              rows: [],
-              totalEntries: entries.length,
-            });
-          }
-          issueMap.get(mapKey)!.rows.push(i + 1);
-        }
-      }
+      collectMissingKeyRows(entries, column.property, issueMap, `${column.header}:property:${column.property}`, {
+        level: "error",
+        column: column.header,
+        detail: `property: "${column.property}"`,
+        message: "キー未定義",
+      });
     }
 
     if (column.type === "link" || column.type === "badge") {
-      const templateKeys = extractPlaceholderKeys(column.url);
-      for (const templateKey of templateKeys) {
-        const mapKey = `${column.header}:url:${templateKey}`;
-        for (let i = 0; i < entries.length; i++) {
-          if (!(templateKey in entries[i])) {
-            if (!issueMap.has(mapKey)) {
-              issueMap.set(mapKey, {
-                level: column.type === "badge" ? "error" : "warning",
-                column: column.header,
-                detail: `url key: "${templateKey}"`,
-                message: "キー未定義",
-                rows: [],
-                totalEntries: entries.length,
-              });
-            }
-            issueMap.get(mapKey)!.rows.push(i + 1);
-          }
-        }
+      for (const templateKey of extractPlaceholderKeys(column.url)) {
+        collectMissingKeyRows(entries, templateKey, issueMap, `${column.header}:url:${templateKey}`, {
+          level: column.type === "badge" ? "error" : "warning",
+          column: column.header,
+          detail: `url key: "${templateKey}"`,
+          message: "キー未定義",
+        });
       }
     }
   }
 
-  return { issues: Array.from(issueMap.values()) };
+  return { issues: Array.from(issueMap.values()), totalEntries: entries.length };
 }
