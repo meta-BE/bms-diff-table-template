@@ -15,6 +15,7 @@
     { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}" },
     { "header": "Comment", "type": "text", "property": "comment", "width": "20%" },
     { "header": "Rating", "type": "text", "property": "rating" },
-    { "header": "Published", "type": "text", "property": "published" }
+    { "header": "Published", "type": "text", "property": "published" },
+    { "header": "TEST_NONEXISTENT", "type": "text", "property": "this_key_does_not_exist" }
   ]
 }
