@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState, createContext, useContext } from "react";
+import { useEffect, useState, useCallback, useMemo, createContext, useContext } from "react";
 
 type ThemeMode = "light" | "dark" | "system";
+
+const THEME_STORAGE_KEY = "theme-mode";
 
 interface ThemeContextValue {
   mode: ThemeMode;
@@ -33,18 +35,20 @@ export function ThemeProvider({
   children,
 }: ThemeProviderProps) {
   const [mode, setModeState] = useState<ThemeMode>(darkMode);
-  const [resolved, setResolved] = useState<"light" | "dark">("light");
+  const [resolved, setResolved] = useState<"light" | "dark">(
+    darkMode === "dark" ? "dark" : "light"
+  );
 
-  function setMode(newMode: ThemeMode) {
+  const setMode = useCallback((newMode: ThemeMode) => {
     setModeState(newMode);
     if (darkMode === "system") {
-      localStorage.setItem("theme-mode", newMode);
+      localStorage.setItem(THEME_STORAGE_KEY, newMode);
     }
-  }
+  }, [darkMode]);
 
   useEffect(() => {
     if (darkMode === "system") {
-      const saved = localStorage.getItem("theme-mode") as ThemeMode | null;
+      const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode | null;
       if (saved && ["light", "dark", "system"].includes(saved)) {
         setModeState(saved);
       }
@@ -71,8 +75,13 @@ export function ThemeProvider({
 
   const theme = resolved === "dark" ? darkTheme : lightTheme;
 
+  const contextValue = useMemo(
+    () => ({ mode, resolved, setMode, configDarkMode: darkMode }),
+    [mode, resolved, setMode, darkMode]
+  );
+
   return (
-    <ThemeContext.Provider value={{ mode, resolved, setMode, configDarkMode: darkMode }}>
+    <ThemeContext.Provider value={contextValue}>
       <div data-theme={theme} className="min-h-screen">
         {children}
       </div>

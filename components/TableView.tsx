@@ -42,44 +42,33 @@ function groupByLevel(
   return ordered;
 }
 
+function toDisplayString(value: unknown): string {
+  return value !== undefined && value !== null ? String(value) : "";
+}
+
+function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="link link-hover">
+      {children}
+    </a>
+  );
+}
+
 function CellContent({ column, entry }: { column: ColumnDef; entry: TableEntry }) {
   switch (column.type) {
-    case "text": {
-      const value = entry[column.property];
-      return <>{value !== undefined && value !== null ? String(value) : ""}</>;
-    }
+    case "text":
+      return <>{toDisplayString(entry[column.property])}</>;
     case "link": {
       if (!(column.property in entry)) return null;
-      const text = entry[column.property];
-      const displayText = text !== undefined && text !== null ? String(text) : "";
+      const displayText = toDisplayString(entry[column.property]);
       const url = resolveTemplate(column.url, entry);
-      if (url) {
-        return (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="link link-hover"
-          >
-            {displayText}
-          </a>
-        );
-      }
+      if (url) return <ExternalLink href={url}>{displayText}</ExternalLink>;
       return <>{displayText}</>;
     }
     case "badge": {
       const url = resolveTemplate(column.url, entry);
       if (!url) return null;
-      return (
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="link link-hover"
-        >
-          {column.label}
-        </a>
-      );
+      return <ExternalLink href={url}>{column.label}</ExternalLink>;
     }
   }
 }
@@ -89,7 +78,6 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
 
   return (
     <div className="table-grid w-full" role="table">
-      {/* ヘッダー */}
       <div className="contents" role="row">
         <div className="font-bold bg-base-200 p-2" role="columnheader">Level</div>
         {columns.map((col, i) => (
@@ -99,15 +87,12 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
         ))}
       </div>
 
-      {/* ボディ */}
       {Array.from(grouped).map(([level, levelEntries]) => (
         <Fragment key={`level-${level}`}>
-          {/* グループヘッダー */}
           <div className="table-grid-header-row bg-base-300 text-center font-bold p-2" role="row">
             {symbol}{level} ({levelEntries.length}譜面)
           </div>
 
-          {/* 行 */}
           {levelEntries.map((entry) => (
             <div key={entry.md5} className="contents" role="row">
               <div className="p-2 border-b border-base-200" role="cell">

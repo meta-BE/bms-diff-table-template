@@ -13,7 +13,7 @@ export default async function Page() {
   const descriptionHtml = loadDescription();
 
   return (
-    <div className="min-h-screen">
+    <div>
       <header className="navbar bg-base-200">
         <div className="flex-1">
           <span className="text-xl font-bold px-4">{config.name}</span>
