@@ -29,8 +29,7 @@ describe("config", () => {
   it("align プロパティが読み込まれる", async () => {
     const { config } = await import("@/lib/config");
     const withAlign = config.columns.find((c) => "align" in c && c.align);
-    if (withAlign) {
-      expect(withAlign.align).toMatch(/^(left|center|right)$/);
-    }
+    expect(withAlign).toBeDefined();
+    expect(withAlign!.align).toMatch(/^(left|center|right)$/);
   });
 });
