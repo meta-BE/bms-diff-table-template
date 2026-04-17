@@ -39,6 +39,8 @@ export function validateEntries(
   const issueMap = new Map<string, ValidationIssue>();
 
   for (const column of columns) {
+    if (column.type === "level") continue;
+
     if (column.type === "text" || column.type === "link") {
       collectMissingKeyRows(entries, column.property, issueMap, `${column.header}:property:${column.property}`, {
         level: "error",
