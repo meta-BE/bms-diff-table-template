@@ -1,20 +1,21 @@
 {
   "name": "meta自作差分一覧",
   "symbol": "Σ",
-  "dataUrl": "https://bms.congenial-spirits.com/data.json",
-  "siteDescription": "サンプルの難易度表です。table.config.json を編集してカスタマイズしてください。",
+  "dataUrl": "https://script.google.com/macros/u/1/s/AKfycbzZUXBhY2gzFtQve6OBBvt02Qov6Bpid2SfObkfuJE9ef1RZathys9Hjb30XfrkudAvfg/exec",
+  "siteDescription": "meta自作差分一覧",
   "lightTheme": "light",
   "darkTheme": "dark",
   "darkMode": "system",
   "levelOrder": [],
   "course": [],
   "columns": [
+    { "header": "Lv", "type": "level" },
     { "header": "Title", "type": "link", "property": "title", "url": "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5={{md5}}", "width": "30%" },
     { "header": "Artist", "type": "link", "property": "artist", "url": "{{url}}", "width": "25%" },
-    { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}" },
-    { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}" },
+    { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}", "align": "center" },
+    { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}", "align": "center" },
     { "header": "Comment", "type": "text", "property": "comment", "width": "30%" },
-    { "header": "Rating", "type": "text", "property": "rating" },
-    { "header": "Published", "type": "text", "property": "published" }
+    { "header": "Rating", "type": "text", "property": "rating", "align": "center" },
+    { "header": "Published", "type": "text", "property": "published_at", "align": "center" }
   ]
 }
