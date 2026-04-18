@@ -6,11 +6,21 @@ export interface CourseEntry {
   md5: string[];
 }
 
+export type Align = "left" | "center" | "right";
+
+export interface LevelColumn {
+  header: string;
+  type: "level";
+  width?: string;
+  align?: Align;
+}
+
 export interface TextColumn {
   header: string;
   type: "text";
   property: string;
   width?: string;
+  align?: Align;
 }
 
 export interface LinkColumn {
@@ -19,6 +29,7 @@ export interface LinkColumn {
   property: string;
   url: string;
   width?: string;
+  align?: Align;
 }
 
 export interface BadgeColumn {
@@ -27,9 +38,10 @@ export interface BadgeColumn {
   label: string;
   url: string;
   width?: string;
+  align?: Align;
 }
 
-export type ColumnDef = TextColumn | LinkColumn | BadgeColumn;
+export type ColumnDef = LevelColumn | TextColumn | LinkColumn | BadgeColumn;
 
 export interface TableConfig {
   name: string;

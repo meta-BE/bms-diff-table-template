@@ -18,4 +18,18 @@ describe("config", () => {
     expect(config.course).toBeInstanceOf(Array);
     expect(config.columns).toBeInstanceOf(Array);
   });
+
+  it("level型カラムが定義できる", async () => {
+    const { config } = await import("@/lib/config");
+    const levelCol = config.columns.find((c) => c.type === "level");
+    expect(levelCol).toBeDefined();
+    expect(levelCol!.header).toBeTypeOf("string");
+  });
+
+  it("align プロパティが読み込まれる", async () => {
+    const { config } = await import("@/lib/config");
+    const withAlign = config.columns.find((c) => "align" in c && c.align);
+    expect(withAlign).toBeDefined();
+    expect(withAlign!.align).toMatch(/^(left|center|right)$/);
+  });
 });

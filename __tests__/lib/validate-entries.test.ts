@@ -110,4 +110,13 @@ describe("validateEntries", () => {
     expect(levels).toContain("error");
     expect(levels).toContain("warning");
   });
+
+  it("level型カラムはバリデーション対象外", () => {
+    const columns: ColumnDef[] = [
+      { header: "Lv", type: "level" },
+      { header: "Title", type: "text", property: "title" },
+    ];
+    const result = validateEntries(baseEntries, columns);
+    expect(result.issues).toHaveLength(0);
+  });
 });

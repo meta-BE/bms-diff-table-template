@@ -46,6 +46,13 @@ function toDisplayString(value: unknown): string {
   return value !== undefined && value !== null ? String(value) : "";
 }
 
+function getAlignClass(column: ColumnDef): string {
+  if (!column.align || column.align === "left") return "";
+  if (column.align === "center") return "text-center";
+  if (column.align === "right") return "text-right";
+  return "";
+}
+
 function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" className="link link-hover">
@@ -54,8 +61,10 @@ function ExternalLink({ href, children }: { href: string; children: React.ReactN
   );
 }
 
-function CellContent({ column, entry }: { column: ColumnDef; entry: TableEntry }) {
+function CellContent({ column, entry, symbol, level }: { column: ColumnDef; entry: TableEntry; symbol: string; level: string }) {
   switch (column.type) {
+    case "level":
+      return <>{symbol}{level}</>;
     case "text":
       return <>{toDisplayString(entry[column.property])}</>;
     case "link": {
@@ -79,7 +88,6 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
   return (
     <div className="table-grid w-full" role="table">
       <div className="contents" role="row">
-        <div className="font-bold bg-base-200 p-2" role="columnheader">Level</div>
         {columns.map((col, i) => (
           <div key={`${col.header}-${i}`} className="font-bold bg-base-200 p-2" role="columnheader">
             {col.header}
@@ -95,12 +103,9 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
 
           {levelEntries.map((entry) => (
             <div key={entry.md5} className="contents" role="row">
-              <div className="p-2 border-b border-base-200" role="cell">
-                {symbol}{level}
-              </div>
               {columns.map((col, i) => (
-                <div key={`${col.header}-${i}`} className="p-2 border-b border-base-200" role="cell">
-                  <CellContent column={col} entry={entry} />
+                <div key={`${col.header}-${i}`} className={`p-2 border-b border-base-200 ${getAlignClass(col)}`.trim()} role="cell">
+                  <CellContent column={col} entry={entry} symbol={symbol} level={level} />
                 </div>
               ))}
             </div>

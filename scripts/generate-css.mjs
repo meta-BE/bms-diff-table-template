@@ -5,11 +5,8 @@ const lightTheme = config.lightTheme || "light";
 const darkTheme = config.darkTheme || "dark";
 const columns = config.columns || [];
 
-// レベルカラム（先頭固定）+ ユーザー定義カラム
 function buildGridColumns(columns) {
-  // レベルカラムは auto
-  const levelCol = "auto";
-  if (columns.length === 0) return levelCol;
+  if (columns.length === 0) return "1fr";
 
   const cols = columns.map((col) => {
     if (!col.width) return "1fr";
@@ -21,12 +18,11 @@ function buildGridColumns(columns) {
     return "1fr";
   });
 
-  return `${levelCol} ${cols.join(" ")}`;
+  return cols.join(" ");
 }
 
 const gridCols = buildGridColumns(columns);
-// カラム総数 = レベル(1) + ユーザー定義カラム数
-const totalCols = 1 + columns.length;
+const totalCols = columns.length;
 
 const css = `@import "tailwindcss";
 @plugin "@tailwindcss/typography";

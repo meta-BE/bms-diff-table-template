@@ -2,14 +2,13 @@
 
 `table.config.json` の `columns` にテーブルに表示するカラムを配列で定義します。
 
-レベルカラムは常に先頭に自動表示されるため、定義不要です。
-
 ## カラムタイプ
 
-カラムには3つのタイプがあります:
+カラムには4つのタイプがあります:
 
 | タイプ | 説明 | 用途の例 |
 |---|---|---|
+| `level` | レベル値（symbol + level）を表示 | 難易度レベル表示 |
 | `text` | プロパティの値をそのまま表示 | コメント、ノーツ数、アーティスト名 |
 | `link` | プロパティの値をテキストにしてリンク化 | 曲名→LR2IR、アーティスト名→BMS配布ページ |
 | `badge` | 固定テキストのリンクボタン | DLボタン、再生ボタン |
@@ -21,8 +20,20 @@
 | フィールド | 型 | 必須 | 説明 |
 |---|---|---|---|
 | `header` | 文字列 | Yes | カラムヘッダーの表示名 |
-| `type` | `"text"` / `"link"` / `"badge"` | Yes | カラムタイプ |
+| `type` | `"level"` / `"text"` / `"link"` / `"badge"` | Yes | カラムタイプ |
 | `width` | 文字列 | No | 幅指定（`"50%"` や `"100px"`）。未指定なら均等分割 |
+| `align` | `"left"` / `"center"` / `"right"` | No | セル内のテキスト配置。未指定なら `"left"` |
+
+> `align` はデータセルのみに適用されます。ヘッダー行は常に左揃えです。
+
+## `level` タイプ
+
+レベル値（symbol + level）を表示します。`columns` 配列内の任意の位置に配置できます。
+`level` タイプが `columns` に含まれない場合、レベル列は表示されません。
+
+```json
+{ "header": "Lv", "type": "level" }
+```
 
 ## `text` タイプ
 
@@ -82,10 +93,11 @@
   "symbol": "★",
   "dataUrl": "https://script.google.com/macros/s/.../exec",
   "columns": [
+    { "header": "Lv", "type": "level" },
     { "header": "Title", "type": "link", "property": "title", "url": "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5={{md5}}", "width": "40%" },
     { "header": "Artist", "type": "link", "property": "artist", "url": "{{url}}", "width": "25%" },
-    { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}" },
-    { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}" },
+    { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}", "align": "center" },
+    { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}", "align": "center" },
     { "header": "Comment", "type": "text", "property": "comment", "width": "20%" }
   ]
 }
