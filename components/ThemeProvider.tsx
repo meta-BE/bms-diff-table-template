@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo, createContext, useContext } from "react";
-
-type ThemeMode = "light" | "dark" | "system";
+import { useEffect, useState, useCallback, useMemo, useSyncExternalStore, createContext, useContext } from "react";
+import type { ThemeMode } from "@/lib/config";
 
 const THEME_STORAGE_KEY = "theme-mode";
 
@@ -21,6 +20,16 @@ export function useTheme() {
   return ctx;
 }
 
+function subscribeMediaDark(cb: () => void) {
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+
+function getMediaDark() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
 interface ThemeProviderProps {
   lightTheme: string;
   darkTheme: string;
@@ -35,9 +44,10 @@ export function ThemeProvider({
   children,
 }: ThemeProviderProps) {
   const [mode, setModeState] = useState<ThemeMode>(darkMode);
-  const [resolved, setResolved] = useState<"light" | "dark">(
-    darkMode === "dark" ? "dark" : "light"
-  );
+  const prefersDark = useSyncExternalStore(subscribeMediaDark, getMediaDark, () => false);
+
+  const resolved: "light" | "dark" =
+    mode === "system" ? (prefersDark ? "dark" : "light") : mode;
 
   const setMode = useCallback((newMode: ThemeMode) => {
     setModeState(newMode);
@@ -54,24 +64,6 @@ export function ThemeProvider({
       }
     }
   }, [darkMode]);
-
-  useEffect(() => {
-    if (mode === "light") {
-      setResolved("light");
-      return;
-    }
-    if (mode === "dark") {
-      setResolved("dark");
-      return;
-    }
-    // mode === "system"
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    setResolved(mq.matches ? "dark" : "light");
-    const handler = (e: MediaQueryListEvent) =>
-      setResolved(e.matches ? "dark" : "light");
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, [mode]);
 
   const theme = resolved === "dark" ? darkTheme : lightTheme;
 

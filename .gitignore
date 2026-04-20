@@ -45,6 +45,8 @@ app/globals.css
 
 # ignore by user
 CLAUDE.md
+TODO.md
 docs/**
 .playwright-mcp/**
+.playwright-cli/**
 

@@ -7,6 +7,7 @@ export interface CourseEntry {
 }
 
 export type Align = "left" | "center" | "right";
+export type ThemeMode = "light" | "dark" | "system";
 
 export interface LevelColumn {
   header: string;
@@ -50,7 +51,7 @@ export interface TableConfig {
   siteDescription: string;
   lightTheme: string;
   darkTheme: string;
-  darkMode: "light" | "dark" | "system";
+  darkMode: ThemeMode;
   levelOrder: string[];
   course: CourseEntry[];
   columns: ColumnDef[];

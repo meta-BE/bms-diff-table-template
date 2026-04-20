@@ -12,8 +12,14 @@ export default async function Page() {
   logValidationIssues(result);
   const descriptionHtml = loadDescription();
 
+  const descriptionContent = descriptionHtml
+    ? <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
+    : config.siteDescription
+    ? <p>{config.siteDescription}</p>
+    : null;
+
   return (
-    <div>
+    <>
       <header className="navbar bg-base-200">
         <div className="flex-1">
           <span className="text-xl font-bold px-4">{config.name}</span>
@@ -24,18 +30,9 @@ export default async function Page() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {descriptionHtml ? (
-          <div className="alert mb-6">
-            <div
-              className="prose max-w-none"
-              dangerouslySetInnerHTML={{ __html: descriptionHtml }}
-            />
-          </div>
-        ) : config.siteDescription ? (
-          <div className="alert mb-6">
-            <p>{config.siteDescription}</p>
-          </div>
-        ) : null}
+        {descriptionContent && (
+          <div className="alert mb-6">{descriptionContent}</div>
+        )}
 
         <div className="overflow-x-auto">
           <TableView
@@ -46,6 +43,6 @@ export default async function Page() {
           />
         </div>
       </main>
-    </div>
+    </>
   );
 }

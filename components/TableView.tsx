@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import type { TableEntry } from "@/lib/fetch-table-data";
-import type { ColumnDef } from "@/lib/config";
+import type { ColumnDef, Align } from "@/lib/config";
 import { resolveTemplate } from "@/lib/resolve-template";
 
 interface TableViewProps {
@@ -46,11 +46,14 @@ function toDisplayString(value: unknown): string {
   return value !== undefined && value !== null ? String(value) : "";
 }
 
+const ALIGN_CLASS: Record<Align, string> = {
+  left: "",
+  center: "text-center",
+  right: "text-right",
+};
+
 function getAlignClass(column: ColumnDef): string {
-  if (!column.align || column.align === "left") return "";
-  if (column.align === "center") return "text-center";
-  if (column.align === "right") return "text-right";
-  return "";
+  return column.align ? ALIGN_CLASS[column.align] : "";
 }
 
 function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -84,6 +87,10 @@ function CellContent({ column, entry, symbol, level }: { column: ColumnDef; entr
 
 export function TableView({ entries, symbol, levelOrder, columns }: TableViewProps) {
   const grouped = groupByLevel(entries, levelOrder);
+  const cellClassNames = columns.map((col) => {
+    const align = getAlignClass(col);
+    return align ? `p-2 border-b border-base-200 ${align}` : "p-2 border-b border-base-200";
+  });
 
   return (
     <div className="table-grid w-full" role="table">
@@ -104,7 +111,7 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
           {levelEntries.map((entry) => (
             <div key={entry.md5} className="contents" role="row">
               {columns.map((col, i) => (
-                <div key={`${col.header}-${i}`} className={`p-2 border-b border-base-200 ${getAlignClass(col)}`.trim()} role="cell">
+                <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell">
                   <CellContent column={col} entry={entry} symbol={symbol} level={level} />
                 </div>
               ))}
