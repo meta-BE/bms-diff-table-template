@@ -21,7 +21,25 @@ function buildGridColumns(columns) {
   return cols.join(" ");
 }
 
+export function buildMinWidth(columns) {
+  const MIN_FLOOR = 600;
+  const DEFAULT_COL_WIDTH = 80;
+  const PX_PER_PERCENT = 8;
+
+  if (columns.length === 0) return MIN_FLOOR;
+
+  const total = columns.reduce((sum, col) => {
+    if (!col.width) return sum + DEFAULT_COL_WIDTH;
+    if (col.width.endsWith("px")) return sum + parseFloat(col.width);
+    if (col.width.endsWith("%")) return sum + parseFloat(col.width) * PX_PER_PERCENT;
+    return sum + DEFAULT_COL_WIDTH;
+  }, 0);
+
+  return Math.max(total, MIN_FLOOR);
+}
+
 const gridCols = buildGridColumns(columns);
+const minWidth = buildMinWidth(columns);
 const totalCols = columns.length;
 
 const css = `@import "tailwindcss";
@@ -33,6 +51,7 @@ const css = `@import "tailwindcss";
 .table-grid {
   display: grid;
   grid-template-columns: ${gridCols};
+  min-width: ${minWidth}px;
 }
 
 .table-grid-header-row {
@@ -42,5 +61,5 @@ const css = `@import "tailwindcss";
 
 writeFileSync("app/globals.css", css);
 console.log(
-  `app/globals.css を生成しました (themes: ${lightTheme}, ${darkTheme}, grid: ${gridCols})`
+  `app/globals.css を生成しました (themes: ${lightTheme}, ${darkTheme}, grid: ${gridCols}, min-width: ${minWidth}px)`
 );

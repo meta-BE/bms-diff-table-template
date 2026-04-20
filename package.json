@@ -5,7 +5,7 @@
   "scripts": {
     "prebuild": "node scripts/generate-css.mjs",
     "predev": "node scripts/generate-css.mjs",
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
