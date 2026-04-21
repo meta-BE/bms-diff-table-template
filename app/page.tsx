@@ -2,14 +2,13 @@ import { config } from "@/lib/config";
 import { fetchTableData } from "@/lib/fetch-table-data";
 import { loadDescription } from "@/lib/load-description";
 import { validateEntries } from "@/lib/validate-entries";
-import { logValidationIssues } from "@/lib/log-validation";
+import { ValidationLogger } from "@/components/ValidationLogger";
 import { TableView } from "@/components/TableView";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 export default async function Page() {
   const entries = await fetchTableData();
   const result = validateEntries(entries, config.columns);
-  logValidationIssues(result);
   const descriptionHtml = loadDescription();
 
   const descriptionContent = descriptionHtml
@@ -20,6 +19,7 @@ export default async function Page() {
 
   return (
     <>
+      <ValidationLogger issues={result.issues} totalEntries={entries.length} />
       <header className="navbar bg-base-200">
         <div className="flex-1">
           <span className="text-xl font-bold px-4">{config.name}</span>
