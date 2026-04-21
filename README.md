@@ -27,10 +27,6 @@ npm install
 npm run dev
 ```
 
-## TODO
-- 説明文埋め込み機能（description.html）のマークダウン対応
-- favicon.ico, metaタグ
-
 ## ライセンス
 
 MIT
