@@ -88,8 +88,12 @@ function CellContent({ column, entry, symbol, level }: { column: ColumnDef; entr
 export function TableView({ entries, symbol, levelOrder, columns }: TableViewProps) {
   const grouped = groupByLevel(entries, levelOrder);
   const cellClassNames = columns.map((col) => {
+    const parts = ["p-2", "border-b", "border-base-200"];
     const align = getAlignClass(col);
-    return align ? `p-2 border-b border-base-200 ${align}` : "p-2 border-b border-base-200";
+    if (align) parts.push(align);
+    if (col.nowrap || col.ellipsis) parts.push("whitespace-nowrap");
+    if (col.ellipsis) parts.push("overflow-hidden", "text-ellipsis");
+    return parts.join(" ");
   });
 
   return (
