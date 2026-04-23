@@ -14,6 +14,8 @@ export interface LevelColumn {
   type: "level";
   width?: string;
   align?: Align;
+  nowrap?: boolean;
+  ellipsis?: boolean;
 }
 
 export interface TextColumn {
@@ -22,6 +24,8 @@ export interface TextColumn {
   property: string;
   width?: string;
   align?: Align;
+  nowrap?: boolean;
+  ellipsis?: boolean;
 }
 
 export interface LinkColumn {
@@ -31,6 +35,8 @@ export interface LinkColumn {
   url: string;
   width?: string;
   align?: Align;
+  nowrap?: boolean;
+  ellipsis?: boolean;
 }
 
 export interface BadgeColumn {
@@ -40,6 +46,8 @@ export interface BadgeColumn {
   url: string;
   width?: string;
   align?: Align;
+  nowrap?: boolean;
+  ellipsis?: boolean;
 }
 
 export type ColumnDef = LevelColumn | TextColumn | LinkColumn | BadgeColumn;

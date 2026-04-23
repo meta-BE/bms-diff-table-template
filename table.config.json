@@ -16,6 +16,6 @@
     { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}", "align": "center" },
     { "header": "Comment", "type": "text", "property": "comment", "width": "30%" },
     { "header": "Rating", "type": "text", "property": "rating", "align": "center" },
-    { "header": "Published", "type": "text", "property": "published_at", "align": "center" }
+    { "header": "Published", "type": "text", "property": "published_at", "align": "center", "nowrap": true }
   ]
 }

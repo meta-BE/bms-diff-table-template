@@ -32,4 +32,10 @@ describe("config", () => {
     expect(withAlign).toBeDefined();
     expect(withAlign!.align).toMatch(/^(left|center|right)$/);
   });
+
+  it("nowrap プロパティが読み込まれる", async () => {
+    const { config } = await import("@/lib/config");
+    const withNowrap = config.columns.find((c) => "nowrap" in c && c.nowrap);
+    expect(withNowrap).toBeDefined();
+  });
 });
