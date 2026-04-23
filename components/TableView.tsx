@@ -46,6 +46,19 @@ function toDisplayString(value: unknown): string {
   return value !== undefined && value !== null ? String(value) : "";
 }
 
+function getCellText(column: ColumnDef, entry: TableEntry, symbol: string, level: string): string {
+  switch (column.type) {
+    case "level":
+      return `${symbol}${level}`;
+    case "text":
+      return toDisplayString(entry[column.property]);
+    case "link":
+      return column.property in entry ? toDisplayString(entry[column.property]) : "";
+    case "badge":
+      return column.label;
+  }
+}
+
 const ALIGN_CLASS: Record<Align, string> = {
   left: "",
   center: "text-center",
@@ -92,7 +105,7 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
     const align = getAlignClass(col);
     if (align) parts.push(align);
     if (col.nowrap || col.ellipsis) parts.push("whitespace-nowrap");
-    if (col.ellipsis) parts.push("overflow-hidden", "text-ellipsis");
+    if (col.ellipsis) parts.push("overflow-hidden", "text-ellipsis", "tooltip");
     return parts.join(" ");
   });
 
@@ -114,11 +127,16 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
 
           {levelEntries.map((entry) => (
             <div key={entry.md5} className="contents" role="row">
-              {columns.map((col, i) => (
-                <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell">
-                  <CellContent column={col} entry={entry} symbol={symbol} level={level} />
-                </div>
-              ))}
+              {columns.map((col, i) => {
+                const tipProps = col.ellipsis
+                  ? { "data-tip": getCellText(col, entry, symbol, level) }
+                  : {};
+                return (
+                  <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell" {...tipProps}>
+                    <CellContent column={col} entry={entry} symbol={symbol} level={level} />
+                  </div>
+                );
+              })}
             </div>
           ))}
         </Fragment>
