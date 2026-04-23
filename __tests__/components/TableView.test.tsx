@@ -10,7 +10,7 @@ const entries: TableEntry[] = [
 ];
 
 describe("TableView - ellipsis", () => {
-  it("ellipsis: true のカラムに tooltip, whitespace-nowrap, overflow-hidden, text-ellipsis クラスが付与される", () => {
+  it("ellipsis: true のカラムで tooltip クラスがセルに、overflow-hidden / text-ellipsis / whitespace-nowrap が内側 div に付与される", () => {
     const columns: ColumnDef[] = [
       { header: "タイトル", type: "text", property: "title", ellipsis: true },
     ];
@@ -23,11 +23,12 @@ describe("TableView - ellipsis", () => {
       />
     );
 
-    const cells = container.querySelectorAll('[role="cell"]');
-    expect(cells[0].className).toContain("tooltip");
-    expect(cells[0].className).toContain("whitespace-nowrap");
-    expect(cells[0].className).toContain("overflow-hidden");
-    expect(cells[0].className).toContain("text-ellipsis");
+    const cell = container.querySelectorAll('[role="cell"]')[0];
+    expect(cell.className).toContain("tooltip");
+    const inner = cell.firstElementChild!;
+    expect(inner.className).toContain("overflow-hidden");
+    expect(inner.className).toContain("text-ellipsis");
+    expect(inner.className).toContain("whitespace-nowrap");
   });
 
   it("ellipsis: true のカラムの data-tip にセルのテキスト内容が設定される", () => {
@@ -60,8 +61,9 @@ describe("TableView - ellipsis", () => {
       />
     );
 
-    const cells = container.querySelectorAll('[role="cell"]');
-    expect(cells[0].className).toContain("whitespace-nowrap");
+    const cell = container.querySelectorAll('[role="cell"]')[0];
+    const inner = cell.firstElementChild!;
+    expect(inner.className).toContain("whitespace-nowrap");
   });
 });
 

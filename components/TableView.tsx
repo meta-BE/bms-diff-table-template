@@ -104,8 +104,8 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
     const parts = ["p-2", "border-b", "border-base-200"];
     const align = getAlignClass(col);
     if (align) parts.push(align);
-    if (col.nowrap || col.ellipsis) parts.push("whitespace-nowrap");
-    if (col.ellipsis) parts.push("overflow-hidden", "text-ellipsis", "tooltip");
+    if (col.nowrap) parts.push("whitespace-nowrap");
+    if (col.ellipsis) parts.push("tooltip");
     return parts.join(" ");
   });
 
@@ -128,11 +128,17 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
           {levelEntries.map((entry) => (
             <div key={entry.md5} className="contents" role="row">
               {columns.map((col, i) => {
-                const tipProps = col.ellipsis
-                  ? { "data-tip": getCellText(col, entry, symbol, level) }
-                  : {};
+                if (col.ellipsis) {
+                  return (
+                    <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell" data-tip={getCellText(col, entry, symbol, level)}>
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        <CellContent column={col} entry={entry} symbol={symbol} level={level} />
+                      </div>
+                    </div>
+                  );
+                }
                 return (
-                  <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell" {...tipProps}>
+                  <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell">
                     <CellContent column={col} entry={entry} symbol={symbol} level={level} />
                   </div>
                 );
