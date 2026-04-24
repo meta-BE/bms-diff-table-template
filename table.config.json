@@ -2,7 +2,7 @@
   "name": "meta自作差分一覧",
   "symbol": "Σ",
   "dataUrl": "https://script.google.com/macros/s/AKfycbxFWEMeHZtpHtKHFzgX0yXowh3fwSw6oWS67DsV997kebKls1CEZiSNU-66bpOVX-FNNA/exec",
-  "siteDescription": "meta自作差分一覧",
+  "siteDescription": "metaにより作成されたBMSの差分譜面の一覧",
   "lightTheme": "emerald",
   "darkTheme": "night",
   "darkMode": "system",
