@@ -1,4 +1,5 @@
-import configJson from "../table.config.json";
+import fs from "fs";
+import path from "path";
 
 export interface CourseEntry {
   name: string;
@@ -75,7 +76,18 @@ const defaults: Omit<TableConfig, "name" | "symbol" | "dataUrl"> = {
   columns: [],
 };
 
-export const config: TableConfig = {
-  ...defaults,
-  ...(configJson as Partial<TableConfig>),
-} as TableConfig;
+export function loadConfig(): TableConfig {
+  const localPath = path.join(process.cwd(), "table.config.local.json");
+  const mainPath = path.join(process.cwd(), "table.config.json");
+  const filePath = fs.existsSync(localPath) ? localPath : mainPath;
+  const configJson = JSON.parse(
+    fs.readFileSync(filePath, "utf-8")
+  ) as Partial<TableConfig>;
+
+  return {
+    ...defaults,
+    ...configJson,
+  } as TableConfig;
+}
+
+export const config: TableConfig = loadConfig();
