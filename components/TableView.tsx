@@ -114,7 +114,7 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
     <div className="table-grid w-full" role="table">
       <div className="contents" role="row">
         {columns.map((col, i) => (
-          <div key={`${col.header}-${i}`} className="font-bold bg-base-200 p-2" role="columnheader">
+          <div key={`${col.header}-${i}`} className="font-bold bg-base-200 text-center p-2" role="columnheader">
             {col.header}
           </div>
         ))}

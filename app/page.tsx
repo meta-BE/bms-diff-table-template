@@ -29,7 +29,7 @@ export default async function Page() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="mx-auto max-w-400 px-4 py-6">
         {descriptionContent && (
           <div className="alert mb-6">{descriptionContent}</div>
         )}
