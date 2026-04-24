@@ -15,7 +15,7 @@
 
 ## 共通フィールド
 
-すべてのタイプで使用できるフィールドです:
+すべてのタイプで使用できるフィールドです。必須でないものはスタイルに関わる設定のため、なくても動作には問題ありません。
 
 | フィールド | 型 | 必須 | 説明 |
 |---|---|---|---|
@@ -23,8 +23,12 @@
 | `type` | `"level"` / `"text"` / `"link"` / `"badge"` | Yes | カラムタイプ |
 | `width` | 文字列 | No | 幅指定（`"50%"` や `"100px"`）。未指定なら均等分割 |
 | `align` | `"left"` / `"center"` / `"right"` | No | セル内のテキスト配置。未指定なら `"left"` |
+| `nowrap` | `true` / `false` | No | `true` にするとセル内テキストの折り返しを禁止。日付など固定長の短い値に有効 |
+| `ellipsis` | `true` / `false` | No | `true` にするとテキストがセル幅を超えた場合に `…` で省略表示。省略時のみホバー/タップでツールチップに全文表示 |
 
 > `align` はデータセルのみに適用されます。ヘッダー行は常に左揃えです。
+>
+> `ellipsis` は暗黙的に折り返し禁止も適用するため、`nowrap` の併用は不要です。
 
 ## `level` タイプ
 
@@ -98,7 +102,9 @@
     { "header": "Artist", "type": "link", "property": "artist", "url": "{{url}}", "width": "25%" },
     { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}", "align": "center" },
     { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}", "align": "center" },
-    { "header": "Comment", "type": "text", "property": "comment", "width": "20%" }
+    { "header": "Comment", "type": "text", "property": "comment", "width": "20%", "ellipsis": true },
+    { "header": "Rating", "type": "text", "property": "rating", "align": "center" },
+    { "header": "Published", "type": "text", "property": "published_at", "align": "center", "nowrap": true }
   ]
 }
 ```

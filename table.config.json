@@ -14,7 +14,7 @@
     { "header": "Artist", "type": "link", "property": "artist", "url": "{{url}}", "width": "25%" },
     { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}", "align": "center" },
     { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}", "align": "center" },
-    { "header": "Comment", "type": "text", "property": "comment", "width": "30%" },
+    { "header": "Comment", "type": "text", "property": "comment", "width": "30%", "ellipsis": true },
     { "header": "Rating", "type": "text", "property": "rating", "align": "center" },
     { "header": "Published", "type": "text", "property": "published_at", "align": "center", "nowrap": true }
   ]
