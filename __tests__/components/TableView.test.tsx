@@ -112,3 +112,60 @@ describe("TableView - nowrap", () => {
     expect(cells[1].className).not.toContain("whitespace-nowrap");
   });
 });
+
+describe("TableView - zebra stripe & hover", () => {
+  const columns: ColumnDef[] = [
+    { header: "難易度", type: "level" },
+    { header: "タイトル", type: "text", property: "title" },
+  ];
+
+  const multiEntries: TableEntry[] = [
+    { md5: "aaa", level: "1", title: "曲A" },
+    { md5: "bbb", level: "1", title: "曲B" },
+    { md5: "ccc", level: "1", title: "曲C" },
+  ];
+
+  it("曲行が subgrid 構造を持つ（grid grid-cols-subgrid col-span-full）", () => {
+    const { container } = render(
+      <TableView entries={multiEntries} symbol="★" levelOrder={["1"]} columns={columns} />
+    );
+    const songRows = container.querySelectorAll('[role="row"]');
+    // songRows[0] = ヘッダー行, songRows[1] = レベル区分行, songRows[2..4] = 曲行
+    const firstSongRow = songRows[2];
+    expect(firstSongRow.className).toContain("grid");
+    expect(firstSongRow.className).toContain("grid-cols-subgrid");
+    expect(firstSongRow.className).toContain("col-span-full");
+    expect(firstSongRow.className).not.toContain("contents");
+  });
+
+  it("奇数行（インデックス0,2）に bg-base-content/5 が付与される", () => {
+    const { container } = render(
+      <TableView entries={multiEntries} symbol="★" levelOrder={["1"]} columns={columns} />
+    );
+    const songRows = container.querySelectorAll('[role="row"]');
+    // 曲行は songRows[2], songRows[3], songRows[4]
+    expect(songRows[2].className).toContain("bg-base-content/5");
+    expect(songRows[3].className).not.toContain("bg-base-content/5");
+    expect(songRows[4].className).toContain("bg-base-content/5");
+  });
+
+  it("全曲行に hover:bg-base-content/10 が付与される", () => {
+    const { container } = render(
+      <TableView entries={multiEntries} symbol="★" levelOrder={["1"]} columns={columns} />
+    );
+    const songRows = container.querySelectorAll('[role="row"]');
+    for (let i = 2; i <= 4; i++) {
+      expect(songRows[i].className).toContain("hover:bg-base-content/10");
+    }
+  });
+
+  it("全曲行に transition-colors が付与される", () => {
+    const { container } = render(
+      <TableView entries={multiEntries} symbol="★" levelOrder={["1"]} columns={columns} />
+    );
+    const songRows = container.querySelectorAll('[role="row"]');
+    for (let i = 2; i <= 4; i++) {
+      expect(songRows[i].className).toContain("transition-colors");
+    }
+  });
+});
