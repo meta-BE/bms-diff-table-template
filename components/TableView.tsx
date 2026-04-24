@@ -129,7 +129,11 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
           {levelEntries.map((entry, entryIndex) => (
             <div
               key={entry.md5}
-              className={`grid grid-cols-subgrid col-span-full hover:bg-base-content/10 transition-colors${entryIndex % 2 === 0 ? " bg-base-content/5" : ""}`}
+              className={[
+                "grid grid-cols-subgrid col-span-full",
+                "hover:bg-base-content/10 transition-colors",
+                entryIndex % 2 === 0 ? "bg-base-content/5" : "",
+              ].filter(Boolean).join(" ")}
               role="row"
             >
               {columns.map((col, i) => (
