@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import type { TableEntry } from "@/lib/fetch-table-data";
 import type { ColumnDef, Align } from "@/lib/config";
 import { resolveTemplate } from "@/lib/resolve-template";
+import { EllipsisCell } from "@/components/EllipsisCell";
 
 interface TableViewProps {
   entries: TableEntry[];
@@ -105,7 +106,7 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
     const align = getAlignClass(col);
     if (align) parts.push(align);
     if (col.nowrap) parts.push("whitespace-nowrap");
-    if (col.ellipsis) parts.push("tooltip");
+    if (col.ellipsis) parts.push("min-w-0");
     return parts.join(" ");
   });
 
@@ -127,22 +128,17 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
 
           {levelEntries.map((entry) => (
             <div key={entry.md5} className="contents" role="row">
-              {columns.map((col, i) => {
-                if (col.ellipsis) {
-                  return (
-                    <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell" data-tip={getCellText(col, entry, symbol, level)}>
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">
-                        <CellContent column={col} entry={entry} symbol={symbol} level={level} />
-                      </div>
-                    </div>
-                  );
-                }
-                return (
-                  <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell">
+              {columns.map((col, i) => (
+                <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell">
+                  {col.ellipsis ? (
+                    <EllipsisCell text={getCellText(col, entry, symbol, level)}>
+                      <CellContent column={col} entry={entry} symbol={symbol} level={level} />
+                    </EllipsisCell>
+                  ) : (
                     <CellContent column={col} entry={entry} symbol={symbol} level={level} />
-                  </div>
-                );
-              })}
+                  )}
+                </div>
+              ))}
             </div>
           ))}
         </Fragment>

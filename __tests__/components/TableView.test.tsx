@@ -1,16 +1,24 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { render } from "@testing-library/react";
 import { TableView } from "@/components/TableView";
 import type { TableEntry } from "@/lib/fetch-table-data";
 import type { ColumnDef } from "@/lib/config";
+
+beforeAll(() => {
+  global.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+});
 
 const entries: TableEntry[] = [
   { md5: "abc123", level: "1", title: "テスト曲", artist: "テストアーティスト" },
 ];
 
 describe("TableView - ellipsis", () => {
-  it("ellipsis: true のカラムで tooltip クラスがセルに、overflow-hidden / text-ellipsis / whitespace-nowrap が内側 div に付与される", () => {
+  it("ellipsis: true のカラムで min-w-0 がセルに、overflow-hidden / text-ellipsis / whitespace-nowrap が内側に付与される", () => {
     const columns: ColumnDef[] = [
       { header: "タイトル", type: "text", property: "title", ellipsis: true },
     ];
@@ -24,14 +32,12 @@ describe("TableView - ellipsis", () => {
     );
 
     const cell = container.querySelectorAll('[role="cell"]')[0];
-    expect(cell.className).toContain("tooltip");
-    const inner = cell.firstElementChild!;
-    expect(inner.className).toContain("overflow-hidden");
-    expect(inner.className).toContain("text-ellipsis");
-    expect(inner.className).toContain("whitespace-nowrap");
+    expect(cell.className).toContain("min-w-0");
+    const ellipsisInner = cell.querySelector(".overflow-hidden.text-ellipsis.whitespace-nowrap");
+    expect(ellipsisInner).not.toBeNull();
   });
 
-  it("ellipsis: true のカラムの data-tip にセルのテキスト内容が設定される", () => {
+  it("ellipsis: true のカラムでテキスト内容が正しく表示される", () => {
     const columns: ColumnDef[] = [
       { header: "タイトル", type: "text", property: "title", ellipsis: true },
     ];
@@ -44,13 +50,13 @@ describe("TableView - ellipsis", () => {
       />
     );
 
-    const cells = container.querySelectorAll('[role="cell"]');
-    expect(cells[0].getAttribute("data-tip")).toBe("テスト曲");
+    const cell = container.querySelectorAll('[role="cell"]')[0];
+    expect(cell.textContent).toBe("テスト曲");
   });
 
-  it("ellipsis: true は nowrap: false を明示しても whitespace-nowrap を適用する", () => {
+  it("ellipsis 未指定のカラムには min-w-0 が付与されない", () => {
     const columns: ColumnDef[] = [
-      { header: "タイトル", type: "text", property: "title", ellipsis: true, nowrap: false },
+      { header: "タイトル", type: "text", property: "title" },
     ];
     const { container } = render(
       <TableView
@@ -62,8 +68,7 @@ describe("TableView - ellipsis", () => {
     );
 
     const cell = container.querySelectorAll('[role="cell"]')[0];
-    const inner = cell.firstElementChild!;
-    expect(inner.className).toContain("whitespace-nowrap");
+    expect(cell.className).not.toContain("min-w-0");
   });
 });
 
