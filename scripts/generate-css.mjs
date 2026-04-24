@@ -1,6 +1,9 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 
-const config = JSON.parse(readFileSync("table.config.json", "utf-8"));
+const localPath = "table.config.local.json";
+const mainPath = "table.config.json";
+const configPath = existsSync(localPath) ? localPath : mainPath;
+const config = JSON.parse(readFileSync(configPath, "utf-8"));
 const lightTheme = config.lightTheme || "light";
 const darkTheme = config.darkTheme || "dark";
 const columns = config.columns || [];
