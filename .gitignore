@@ -50,3 +50,6 @@ docs/**
 .playwright-mcp/**
 .playwright-cli/**
 
+# ローカル優先設定ファイル（個人設定用）
+table.config.local.json
+description.local.html
