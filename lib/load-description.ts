@@ -10,7 +10,9 @@ function addLinkAttributes(html: string): string {
 }
 
 export function loadDescription(): string | null {
-  const filePath = path.join(process.cwd(), "description.html");
+  const localPath = path.join(process.cwd(), "description.local.html");
+  const mainPath = path.join(process.cwd(), "description.html");
+  const filePath = fs.existsSync(localPath) ? localPath : mainPath;
   try {
     const raw = fs.readFileSync(filePath, "utf-8");
     return addLinkAttributes(raw);
