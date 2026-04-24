@@ -33,6 +33,8 @@ Googleスプレッドシートからデータを配信する方法は [GASによ
 
 説明文をカスタマイズしたい場合は [description.html の使い方](description-html.md) を参照してください。
 
+サイトのアイコン（favicon）を変更したい場合は、`app/icon.svg` を差し替えてください。`icon.png`、`icon.ico`、`favicon.ico` も使用できます。
+
 ## 3. Vercelにデプロイ
 
 1. [Vercel](https://vercel.com/) にGitHubアカウントでサインアップ
