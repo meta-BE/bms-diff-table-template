@@ -126,8 +126,12 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
             {symbol}{level} ({levelEntries.length}譜面)
           </div>
 
-          {levelEntries.map((entry) => (
-            <div key={entry.md5} className="contents" role="row">
+          {levelEntries.map((entry, entryIndex) => (
+            <div
+              key={entry.md5}
+              className={`grid grid-cols-subgrid col-span-full hover:bg-base-content/10 transition-colors${entryIndex % 2 === 0 ? " bg-base-content/5" : ""}`}
+              role="row"
+            >
               {columns.map((col, i) => (
                 <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell">
                   {col.ellipsis ? (
