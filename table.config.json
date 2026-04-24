@@ -1,10 +1,15 @@
 {
   "name": "My BMS Table",
-  "symbol": "★",
+  "symbol": "⚪︎",
   "dataUrl": "https://your-gas-url/exec",
+  "siteDescription": "ここにサイトの説明を記載してください",
+  "lightTheme": "light",
+  "darkTheme": "dark",
+  "darkMode": "system",
   "columns": [
     { "header": "Lv", "type": "level" },
     { "header": "Title", "type": "link", "property": "title", "url": "{{url}}" },
-    { "header": "Artist", "type": "text", "property": "artist" }
+    { "header": "Artist", "type": "text", "property": "artist" },
+    { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}", "align": "center" }
   ]
 }
