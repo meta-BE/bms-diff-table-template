@@ -18,9 +18,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" suppressHydrationWarning>
-      <head>
-        <meta name="bmstable" content="/header.json" />
-      </head>
       <body>
         <ThemeProvider
           lightTheme={config.lightTheme}

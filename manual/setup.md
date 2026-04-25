@@ -22,7 +22,7 @@ Googleスプレッドシートからデータを配信する方法は [GASによ
 
 | 項目                | デフォルト      | 説明                                             |
 |-------------------|------------|------------------------------------------------|
-| `siteDescription` | `""`       | サイトの説明文                                        |
+| `siteDescription` | `""`       | サイトの説明文（HTMLの`<meta name="description">`にも使用される） |
 | `lightTheme`      | `"light"`  | ライトモード時のdaisyUIテーマ名                            |
 | `darkTheme`       | `"dark"`   | ダークモード時のdaisyUIテーマ名                            |
 | `darkMode`        | `"system"` | どのテーマを利用するか(`"light"` / `"dark"` / `"system"`) |
