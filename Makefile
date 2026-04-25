@@ -1,6 +1,6 @@
 deploy:
 	git checkout deploy
-	git merge main -X ours
+	git merge main -X ours --no-edit
 	@echo ""
 	@echo "=== マージ内容 ==="
 	@git log --oneline deploy...deploy@{1}
