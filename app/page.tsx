@@ -2,6 +2,7 @@ import { config } from "@/lib/config";
 import { fetchTableData } from "@/lib/fetch-table-data";
 import { loadDescription } from "@/lib/load-description";
 import { validateEntries } from "@/lib/validate-entries";
+import { CacheWarmer } from "@/components/CacheWarmer";
 import { ValidationLogger } from "@/components/ValidationLogger";
 import { TableView } from "@/components/TableView";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
@@ -19,6 +20,7 @@ export default async function Page() {
 
   return (
     <>
+      <CacheWarmer />
       <ValidationLogger issues={result.issues} totalEntries={entries.length} />
       <header className="navbar bg-base-200">
         <div className="flex-1">
