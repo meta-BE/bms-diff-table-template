@@ -26,18 +26,18 @@ Googleスプレッドシートからデータを配信する方法は [GASによ
 
 その他のオプション項目は以下のようになります。
 
-| 項目                | デフォルト      | 説明                                             |
-|-------------------|------------|------------------------------------------------|
-| `siteDescription` | `""`       | サイトの説明文（HTMLの`<meta name="description">`にも使用される） |
-| `lightTheme`      | `"light"`  | ライトモード時のdaisyUIテーマ名                            |
-| `darkTheme`       | `"dark"`   | ダークモード時のdaisyUIテーマ名                            |
-| `darkMode`        | `"system"` | どのテーマを利用するか(`"light"` / `"dark"` / `"system"`) |
-| `levelOrder`      | `[]`       | レベルの表示順序（空の場合はデータ出現順）                          |
-| `course`          | `[]`       | 段位認定データ                                        |
-| `tableStyle`          |            | テーブル全体のスタイル設定（省略時は全てデフォルト値が適用される）       |
-| `tableStyle.maxWidth` | `1536`     | テーブルの最大幅（px）                                  |
-| `tableStyle.stripe`   | `false`    | ゼブラストライプの有効/無効                                |
-| `tableStyle.hover`    | `false`    | ホバー時の色変更の有効/無効                                |
+| 項目                    | デフォルト      | 説明                                               |
+|-----------------------|------------|--------------------------------------------------|
+| `siteDescription`     | `""`       | サイトの説明文（HTMLの`<meta name="description">`にも使用される） |
+| `lightTheme`          | `"light"`  | ライトモード時のdaisyUIテーマ名                              |
+| `darkTheme`           | `"dark"`   | ダークモード時のdaisyUIテーマ名                              |
+| `darkMode`            | `"system"` | どのテーマを利用するか(`"light"` / `"dark"` / `"system"`)   |
+| `levelOrder`          | `[]`       | レベルの表示順序（空の場合はデータ出現順）                            |
+| `course`              | `[]`       | 段位認定データ                                          |
+| `tableStyle`          |            | テーブル全体のスタイル設定（省略時は全てデフォルト値が適用される）                |
+| `tableStyle.maxWidth` | `1536`     | テーブルの最大幅（px）                                     |
+| `tableStyle.stripe`   | `false`    | ゼブラストライプの有効/無効                                   |
+| `tableStyle.hover`    | `false`    | ホバー時の色変更の有効/無効                                   |
 
 利用可能なテーマの一覧は [daisyUI Themes](https://daisyui.com/docs/themes/) を参照してください。
 
