@@ -7,7 +7,7 @@ export async function GET() {
   const header: Record<string, unknown> = {
     name: config.name,
     symbol: config.symbol,
-    data_url: "/data.json",
+    data_url: "data.json",
   };
 
   if (config.levelOrder.length > 0) {
