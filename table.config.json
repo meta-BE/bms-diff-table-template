@@ -8,6 +8,7 @@
   "darkMode": "system",
   "levelOrder": [],
   "course": [],
+  "tableStyle": { "maxWidth": 1600, "stripe": true, "hover": true },
   "columns": [
     { "header": "Lv", "type": "level" },
     { "header": "Title", "type": "link", "property": "title", "url": "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5={{md5}}", "width": "30%" },
