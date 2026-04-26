@@ -39,9 +39,7 @@ export default async function Page() {
         <div className="overflow-x-auto">
           <TableView
             entries={entries}
-            symbol={config.symbol}
-            levelOrder={config.levelOrder}
-            columns={config.columns}
+            config={config}
           />
         </div>
       </main>

@@ -1,14 +1,12 @@
 import { Fragment } from "react";
 import type { TableEntry } from "@/lib/fetch-table-data";
-import type { ColumnDef, Align } from "@/lib/config";
+import type { ColumnDef, Align, TableConfig } from "@/lib/config";
 import { resolveTemplate } from "@/lib/resolve-template";
 import { EllipsisCell } from "@/components/EllipsisCell";
 
 interface TableViewProps {
   entries: TableEntry[];
-  symbol: string;
-  levelOrder: string[];
-  columns: ColumnDef[];
+  config: TableConfig;
 }
 
 function groupByLevel(
@@ -99,7 +97,8 @@ function CellContent({ column, entry, symbol, level }: { column: ColumnDef; entr
   }
 }
 
-export function TableView({ entries, symbol, levelOrder, columns }: TableViewProps) {
+export function TableView({ entries, config }: TableViewProps) {
+  const { symbol, levelOrder, columns, tableStyle } = config;
   const grouped = groupByLevel(entries, levelOrder);
   const cellClassNames = columns.map((col) => {
     const parts = ["p-2", "border-b", "border-base-200"];
@@ -131,8 +130,8 @@ export function TableView({ entries, symbol, levelOrder, columns }: TableViewPro
               key={entry.md5}
               className={[
                 "grid grid-cols-subgrid col-span-full",
-                "hover:bg-base-content/10 transition-colors",
-                entryIndex % 2 === 0 ? "bg-base-content/5" : "",
+                tableStyle.hover ? "hover:bg-base-content/10 transition-colors" : "",
+                tableStyle.stripe && entryIndex % 2 === 0 ? "bg-base-content/5" : "",
               ].filter(Boolean).join(" ")}
               role="row"
             >

@@ -3,7 +3,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { render } from "@testing-library/react";
 import { TableView } from "@/components/TableView";
 import type { TableEntry } from "@/lib/fetch-table-data";
-import type { ColumnDef } from "@/lib/config";
+import type { ColumnDef, TableConfig } from "@/lib/config";
 
 beforeAll(() => {
   global.ResizeObserver = class {
@@ -17,6 +17,23 @@ const entries: TableEntry[] = [
   { md5: "abc123", level: "1", title: "テスト曲", artist: "テストアーティスト" },
 ];
 
+function makeConfig(overrides: Partial<TableConfig> = {}): TableConfig {
+  return {
+    name: "Test",
+    symbol: "★",
+    dataUrl: "http://test",
+    siteDescription: "",
+    lightTheme: "light",
+    darkTheme: "dark",
+    darkMode: "system",
+    levelOrder: ["1"],
+    course: [],
+    columns: [],
+    tableStyle: { maxWidth: 1536, stripe: false, hover: false },
+    ...overrides,
+  };
+}
+
 describe("TableView - ellipsis", () => {
   it("ellipsis: true のカラムで min-w-0 がセルに、overflow-hidden / text-ellipsis / whitespace-nowrap が内側に付与される", () => {
     const columns: ColumnDef[] = [
@@ -25,9 +42,7 @@ describe("TableView - ellipsis", () => {
     const { container } = render(
       <TableView
         entries={entries}
-        symbol="★"
-        levelOrder={["1"]}
-        columns={columns}
+        config={makeConfig({ columns })}
       />
     );
 
@@ -44,9 +59,7 @@ describe("TableView - ellipsis", () => {
     const { container } = render(
       <TableView
         entries={entries}
-        symbol="★"
-        levelOrder={["1"]}
-        columns={columns}
+        config={makeConfig({ columns })}
       />
     );
 
@@ -61,9 +74,7 @@ describe("TableView - ellipsis", () => {
     const { container } = render(
       <TableView
         entries={entries}
-        symbol="★"
-        levelOrder={["1"]}
-        columns={columns}
+        config={makeConfig({ columns })}
       />
     );
 
@@ -81,14 +92,11 @@ describe("TableView - nowrap", () => {
     const { container } = render(
       <TableView
         entries={entries}
-        symbol="★"
-        levelOrder={["1"]}
-        columns={columns}
+        config={makeConfig({ columns })}
       />
     );
 
     const cells = container.querySelectorAll('[role="cell"]');
-    // cells[0] = 難易度セル (nowrap なし), cells[1] = タイトルセル (nowrap あり)
     expect(cells[0].className).not.toContain("whitespace-nowrap");
     expect(cells[1].className).toContain("whitespace-nowrap");
   });
@@ -101,9 +109,7 @@ describe("TableView - nowrap", () => {
     const { container } = render(
       <TableView
         entries={entries}
-        symbol="★"
-        levelOrder={["1"]}
-        columns={columns}
+        config={makeConfig({ columns })}
       />
     );
 
@@ -127,7 +133,7 @@ describe("TableView - zebra stripe & hover", () => {
 
   it("曲行が subgrid 構造を持つ（grid grid-cols-subgrid col-span-full）", () => {
     const { container } = render(
-      <TableView entries={multiEntries} symbol="★" levelOrder={["1"]} columns={columns} />
+      <TableView entries={multiEntries} config={makeConfig({ columns, tableStyle: { maxWidth: 1536, stripe: true, hover: true } })} />
     );
     const songRows = container.querySelectorAll('[role="row"]');
     // songRows[0] = ヘッダー行, songRows[1] = レベル区分行, songRows[2..4] = 曲行
@@ -140,7 +146,7 @@ describe("TableView - zebra stripe & hover", () => {
 
   it("奇数行（インデックス0,2）に bg-base-content/5 が付与される", () => {
     const { container } = render(
-      <TableView entries={multiEntries} symbol="★" levelOrder={["1"]} columns={columns} />
+      <TableView entries={multiEntries} config={makeConfig({ columns, tableStyle: { maxWidth: 1536, stripe: true, hover: true } })} />
     );
     const songRows = container.querySelectorAll('[role="row"]');
     // 曲行は songRows[2], songRows[3], songRows[4]
@@ -151,7 +157,7 @@ describe("TableView - zebra stripe & hover", () => {
 
   it("全曲行に hover:bg-base-content/10 が付与される", () => {
     const { container } = render(
-      <TableView entries={multiEntries} symbol="★" levelOrder={["1"]} columns={columns} />
+      <TableView entries={multiEntries} config={makeConfig({ columns, tableStyle: { maxWidth: 1536, stripe: true, hover: true } })} />
     );
     const songRows = container.querySelectorAll('[role="row"]');
     for (let i = 2; i <= 4; i++) {
@@ -161,10 +167,77 @@ describe("TableView - zebra stripe & hover", () => {
 
   it("全曲行に transition-colors が付与される", () => {
     const { container } = render(
-      <TableView entries={multiEntries} symbol="★" levelOrder={["1"]} columns={columns} />
+      <TableView entries={multiEntries} config={makeConfig({ columns, tableStyle: { maxWidth: 1536, stripe: true, hover: true } })} />
     );
     const songRows = container.querySelectorAll('[role="row"]');
     for (let i = 2; i <= 4; i++) {
+      expect(songRows[i].className).toContain("transition-colors");
+    }
+  });
+});
+
+describe("TableView - tableStyle 条件分岐", () => {
+  const columns: ColumnDef[] = [
+    { header: "難易度", type: "level" },
+    { header: "タイトル", type: "text", property: "title" },
+  ];
+
+  const multiEntries: TableEntry[] = [
+    { md5: "aaa", level: "1", title: "曲A" },
+    { md5: "bbb", level: "1", title: "曲B" },
+    { md5: "ccc", level: "1", title: "曲C" },
+  ];
+
+  it("stripe: false の場合、bg-base-content/5 が付与されない", () => {
+    const { container } = render(
+      <TableView
+        entries={multiEntries}
+        config={makeConfig({ columns, tableStyle: { maxWidth: 1536, stripe: false, hover: false } })}
+      />
+    );
+    const songRows = container.querySelectorAll('[role="row"]');
+    for (let i = 2; i <= 4; i++) {
+      expect(songRows[i].className).not.toContain("bg-base-content/5");
+    }
+  });
+
+  it("hover: false の場合、hover:bg-base-content/10 が付与されない", () => {
+    const { container } = render(
+      <TableView
+        entries={multiEntries}
+        config={makeConfig({ columns, tableStyle: { maxWidth: 1536, stripe: false, hover: false } })}
+      />
+    );
+    const songRows = container.querySelectorAll('[role="row"]');
+    for (let i = 2; i <= 4; i++) {
+      expect(songRows[i].className).not.toContain("hover:bg-base-content/10");
+      expect(songRows[i].className).not.toContain("transition-colors");
+    }
+  });
+
+  it("stripe: true の場合、偶数インデックス行に bg-base-content/5 が付与される", () => {
+    const { container } = render(
+      <TableView
+        entries={multiEntries}
+        config={makeConfig({ columns, tableStyle: { maxWidth: 1536, stripe: true, hover: false } })}
+      />
+    );
+    const songRows = container.querySelectorAll('[role="row"]');
+    expect(songRows[2].className).toContain("bg-base-content/5");
+    expect(songRows[3].className).not.toContain("bg-base-content/5");
+    expect(songRows[4].className).toContain("bg-base-content/5");
+  });
+
+  it("hover: true の場合、全曲行に hover:bg-base-content/10 が付与される", () => {
+    const { container } = render(
+      <TableView
+        entries={multiEntries}
+        config={makeConfig({ columns, tableStyle: { maxWidth: 1536, stripe: false, hover: true } })}
+      />
+    );
+    const songRows = container.querySelectorAll('[role="row"]');
+    for (let i = 2; i <= 4; i++) {
+      expect(songRows[i].className).toContain("hover:bg-base-content/10");
       expect(songRows[i].className).toContain("transition-colors");
     }
   });
