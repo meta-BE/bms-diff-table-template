@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { buildMinWidth } from "../../scripts/generate-css.mjs";
+import { buildMinWidth, buildCss } from "../../scripts/generate-css.mjs";
 
 describe("buildMinWidth", () => {
   it("width指定なしカラムは80pxとして計算する", () => {
@@ -45,5 +45,42 @@ describe("buildMinWidth", () => {
 
   it("カラムが空の場合は600pxを返す", () => {
     expect(buildMinWidth([])).toBe(600);
+  });
+});
+
+describe("buildCss - table-container", () => {
+  it("tableStyle.maxWidth に応じた .table-container が生成される", () => {
+    const config = {
+      lightTheme: "light",
+      darkTheme: "dark",
+      columns: [],
+      tableStyle: { maxWidth: 1200 },
+    };
+    const css = buildCss(config);
+    expect(css).toContain(".table-container");
+    expect(css).toContain("max-width: 1200px");
+    expect(css).toContain("margin-left: auto");
+    expect(css).toContain("margin-right: auto");
+  });
+
+  it("tableStyle 未指定時はデフォルト値 1536px が使用される", () => {
+    const config = {
+      lightTheme: "light",
+      darkTheme: "dark",
+      columns: [],
+    };
+    const css = buildCss(config);
+    expect(css).toContain("max-width: 1536px");
+  });
+
+  it("tableStyle.maxWidth のみ指定時はその値が使用される", () => {
+    const config = {
+      lightTheme: "light",
+      darkTheme: "dark",
+      columns: [],
+      tableStyle: { maxWidth: 1600 },
+    };
+    const css = buildCss(config);
+    expect(css).toContain("max-width: 1600px");
   });
 });
