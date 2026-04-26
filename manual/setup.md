@@ -61,11 +61,16 @@ Googleスプレッドシートからデータを配信する方法は [GASによ
 - `table.config.json` を変更してpushすると、Vercelが自動的に再デプロイします
   - 難易度表情報そのものの更新、サイト説明文の更新などを行う際は再度GitHub上でコミット・プッシュを行なってください
 
-## BMSクライアントからの読み込み
+## BMSプレイヤーからの読み込み
 
-デプロイされたサイトのURLをBMSクライアントの難易度表URLとして登録してください。
+デプロイされたサイトのURLをBMSプレイヤーの難易度表URLとして登録してください。
 
-- beatoraja: 難易度表追加で `https://your-site.vercel.app/` を入力
+### beatoraja
+
+以下のいずれかのURLを難易度表追加で入力してください（beatoraja v0.8.8 で動作確認済み）。
+
+- https://your-site.vercel.app/
+- https://your-site.vercel.app/header.json
 
 `/header.json` と `/data.json` が自動的に配信されます。
 
