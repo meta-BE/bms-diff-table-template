@@ -79,7 +79,7 @@ const tableStyleDefaults: TableStyle = {
   hover: false,
 };
 
-const defaults: Omit<TableConfig, "name" | "symbol" | "dataUrl"> = {
+const defaults: Omit<TableConfig, "name" | "symbol" | "dataUrl" | "tableStyle"> = {
   siteDescription: "",
   lightTheme: "light",
   darkTheme: "dark",
