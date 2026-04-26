@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { GET } from "@/app/_parser/route";
+import { GET } from "@/app/parser/route";
 
 describe("GET /_parser", () => {
   it("text/html レスポンスを返す", async () => {
