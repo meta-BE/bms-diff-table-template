@@ -33,4 +33,4 @@ npm run dev
 
 ## ライセンス
 
-MIT
+[MIT License](LICENSE) © 2026 meta
