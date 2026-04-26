@@ -4,9 +4,6 @@ const localPath = "table.config.local.json";
 const mainPath = "table.config.json";
 const configPath = existsSync(localPath) ? localPath : mainPath;
 const config = JSON.parse(readFileSync(configPath, "utf-8"));
-const lightTheme = config.lightTheme || "light";
-const darkTheme = config.darkTheme || "dark";
-const columns = config.columns || [];
 
 /** @returns {{ unit: "none" | "px" | "percent", value: number }} */
 export function parseWidth(width) {
@@ -46,14 +43,27 @@ export function buildMinWidth(columns) {
   return Math.max(total, MIN_FLOOR);
 }
 
-const gridCols = buildGridColumns(columns);
-const minWidth = buildMinWidth(columns);
-const totalCols = columns.length;
+export function buildCss(config) {
+  const lightTheme = config.lightTheme || "light";
+  const darkTheme = config.darkTheme || "dark";
+  const columns = config.columns || [];
+  const tableStyle = config.tableStyle || {};
+  const maxWidth = tableStyle.maxWidth || 1536;
 
-const css = `@import "tailwindcss";
+  const gridCols = buildGridColumns(columns);
+  const minWidth = buildMinWidth(columns);
+  const totalCols = columns.length;
+
+  return `@import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @plugin "daisyui" {
   themes: ${lightTheme} --default, ${darkTheme} --prefersdark;
+}
+
+.table-container {
+  max-width: ${maxWidth}px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .table-grid {
@@ -66,8 +76,11 @@ const css = `@import "tailwindcss";
   grid-column: 1 / ${totalCols + 1};
 }
 `;
+}
+
+const css = buildCss(config);
 
 writeFileSync("app/globals.css", css);
 console.log(
-  `app/globals.css を生成しました (themes: ${lightTheme}, ${darkTheme}, grid: ${gridCols}, min-width: ${minWidth}px)`
+  `app/globals.css を生成しました (themes: ${config.lightTheme || "light"}, ${config.darkTheme || "dark"}, grid: ${buildGridColumns(config.columns || [])}, min-width: ${buildMinWidth(config.columns || [])}px, max-width: ${config.tableStyle?.maxWidth || 1536}px)`
 );

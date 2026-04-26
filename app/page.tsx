@@ -31,7 +31,7 @@ export default async function Page() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-400 px-4 py-6">
+      <main className="table-container px-4 py-6">
         {descriptionContent && (
           <div className="alert mb-6">{descriptionContent}</div>
         )}
@@ -39,9 +39,7 @@ export default async function Page() {
         <div className="overflow-x-auto">
           <TableView
             entries={entries}
-            symbol={config.symbol}
-            levelOrder={config.levelOrder}
-            columns={config.columns}
+            config={config}
           />
         </div>
       </main>

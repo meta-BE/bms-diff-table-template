@@ -10,6 +10,12 @@ export interface CourseEntry {
 export type Align = "left" | "center" | "right";
 export type ThemeMode = "light" | "dark" | "system";
 
+export interface TableStyle {
+  maxWidth: number;
+  stripe: boolean;
+  hover: boolean;
+}
+
 export interface LevelColumn {
   header: string;
   type: "level";
@@ -64,9 +70,16 @@ export interface TableConfig {
   levelOrder: string[];
   course: CourseEntry[];
   columns: ColumnDef[];
+  tableStyle: TableStyle;
 }
 
-const defaults: Omit<TableConfig, "name" | "symbol" | "dataUrl"> = {
+const tableStyleDefaults: TableStyle = {
+  maxWidth: 1536,
+  stripe: false,
+  hover: false,
+};
+
+const defaults: Omit<TableConfig, "name" | "symbol" | "dataUrl" | "tableStyle"> = {
   siteDescription: "",
   lightTheme: "light",
   darkTheme: "dark",
@@ -87,6 +100,10 @@ export function loadConfig(): TableConfig {
   return {
     ...defaults,
     ...configJson,
+    tableStyle: {
+      ...tableStyleDefaults,
+      ...configJson.tableStyle,
+    },
   } as TableConfig;
 }
 

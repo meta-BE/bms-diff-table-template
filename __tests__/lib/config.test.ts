@@ -78,4 +78,59 @@ describe("loadConfig", () => {
     expect(levelCol).toBeDefined();
     expect(levelCol!.header).toBe("Lv");
   });
+
+  it("tableStyle のデフォルト値が適用される", async () => {
+    const minimalConfig = { name: "Test", symbol: "T", dataUrl: "http://test" };
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(minimalConfig));
+
+    const { loadConfig } = await import("@/lib/config");
+    const config = loadConfig();
+
+    expect(config.tableStyle).toEqual({
+      maxWidth: 1536,
+      stripe: false,
+      hover: false,
+    });
+  });
+
+  it("tableStyle の部分指定時に未指定フィールドはデフォルト値が適用される", async () => {
+    const partialConfig = {
+      name: "Test",
+      symbol: "T",
+      dataUrl: "http://test",
+      tableStyle: { maxWidth: 1600 },
+    };
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(partialConfig));
+
+    const { loadConfig } = await import("@/lib/config");
+    const config = loadConfig();
+
+    expect(config.tableStyle).toEqual({
+      maxWidth: 1600,
+      stripe: false,
+      hover: false,
+    });
+  });
+
+  it("tableStyle の全指定時にすべての値が反映される", async () => {
+    const fullConfig = {
+      name: "Test",
+      symbol: "T",
+      dataUrl: "http://test",
+      tableStyle: { maxWidth: 1200, stripe: true, hover: true },
+    };
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(fullConfig));
+
+    const { loadConfig } = await import("@/lib/config");
+    const config = loadConfig();
+
+    expect(config.tableStyle).toEqual({
+      maxWidth: 1200,
+      stripe: true,
+      hover: true,
+    });
+  });
 });

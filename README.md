@@ -3,6 +3,10 @@
 BMS難易度表を簡単にホスティングできるテンプレートです。
 フォークして設定ファイルを編集するだけで、高速な難易度表サイトが立ち上がります。
 
+## デモサイト
+
+[meta自作難易度表](https://bms.congenial-spirits.com/)
+
 ## 特徴
 
 - GAS（Google Apps Script）や任意のJSONソースからデータを取得
