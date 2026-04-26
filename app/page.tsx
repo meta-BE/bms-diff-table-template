@@ -43,6 +43,10 @@ export default async function Page() {
           />
         </div>
       </main>
+
+      <footer className="p-2 bg-base-200 text-base-content text-center">
+        Powered by <a href="https://github.com/meta-BE/bms-diff-table-template" className="link" target="_blank" rel="noopener noreferrer">bms-diff-table-template</a>
+      </footer>
     </>
   );
 }
