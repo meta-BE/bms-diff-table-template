@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: config.name,
   description: config.siteDescription || config.name,
   other: {
-    bmstable: "header.json",
+    bmstable: "./header.json",
   },
 };
 
