@@ -81,8 +81,6 @@ export function buildCss(config) {
 const css = buildCss(config);
 
 writeFileSync("app/globals.css", css);
-const tableStyle = config.tableStyle || {};
-const maxWidth = tableStyle.maxWidth || 1536;
 console.log(
-  `app/globals.css を生成しました (themes: ${config.lightTheme || "light"}, ${config.darkTheme || "dark"}, grid: ${buildGridColumns(config.columns || [])}, min-width: ${buildMinWidth(config.columns || [])}px, max-width: ${maxWidth}px)`
+  `app/globals.css を生成しました (themes: ${config.lightTheme || "light"}, ${config.darkTheme || "dark"}, grid: ${buildGridColumns(config.columns || [])}, min-width: ${buildMinWidth(config.columns || [])}px, max-width: ${config.tableStyle?.maxWidth || 1536}px)`
 );
