@@ -4,8 +4,8 @@ Googleスプレッドシートで譜面データを管理し、GASでJSON APIと
 
 ## 参考サイト
 
-- [GAS(Google Apps Script)を使ってBMS難易度表のデータを管理する](https://bms.hexlataia.xyz/tips/googleapps.html)
-- [BMS難易度表の作り方（ladymade-star）](https://ladymade-star.hateblo.jp/entry/2021/08/18/122653)
+- [スプレッドシートを使って難易度表を管理する (Hex bms)](https://bms.hexlataia.xyz/tips/googleapps.html)
+- [自分オリジナルのBMS難易度表を作って公開しよう【無料・Webブラウザ上で完結】 (ladymade-star)](https://ladymade-star.hateblo.jp/entry/2021/08/18/122653)
 
 ## 1. スプレッドシートを作成
 

@@ -49,7 +49,8 @@ Googleスプレッドシートからデータを配信する方法は [GASによ
 
 1. [Vercel](https://vercel.com/) にGitHubアカウントでサインアップ
 2. ダッシュボードで「Add New Project」→ フォークしたリポジトリを選択
-3. そのまま「Deploy」をクリック
+3. 「Project Name」にプロジェクト名を入力 → この名前がサイトのURLになります（例: `my-bms-table` → `my-bms-table.vercel.app`）
+4. そのまま「Deploy」をクリック
 
 以上で完了です。
 
