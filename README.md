@@ -23,6 +23,7 @@ BMS難易度表を簡単にホスティングできるテンプレートです�
 - [カラム定義](manual/columns.md) — テーブルカラムの設定方法
 - [GASによるデータ配信](manual/gas-setup.md) — スプレッドシートからJSONを配信する方法
 - [説明文のカスタマイズ](manual/description-html.md) — description.html の使い方
+- [ファイル配信](manual/file-distribution.md) — zip等をテンプレートで配信・ダウンロードさせる方法
 
 ## 開発
 

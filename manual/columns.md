@@ -77,6 +77,8 @@
 { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}" }
 ```
 
+> ローカルに同梱した zip 等を配信・リンクする方法は [ファイル配信](file-distribution.md) を参照してください。
+
 ## URLテンプレート
 
 `link` と `badge` の `url` フィールドでは、`{{プロパティ名}}` の記法でJSONデータの値を埋め込めます。
