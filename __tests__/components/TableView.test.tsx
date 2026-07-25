@@ -242,3 +242,44 @@ describe("TableView - tableStyle 条件分岐", () => {
     }
   });
 });
+
+describe("TableView - ローカルパス実在ゲート", () => {
+  const localColumns: ColumnDef[] = [
+    { header: "Mirror", type: "badge", label: "DL", url: "/downloads/{{no}}.zip", align: "center" },
+  ];
+  const localEntries: TableEntry[] = [{ md5: "x", level: "1", no: "26" }];
+
+  it("fileExists が true のとき badge リンクが表示される", () => {
+    const { container } = render(
+      <TableView entries={localEntries} config={makeConfig({ columns: localColumns })} fileExists={() => true} />
+    );
+    const link = container.querySelector('a[href="/downloads/26.zip"]');
+    expect(link).not.toBeNull();
+    expect(link?.textContent).toBe("DL");
+  });
+
+  it("fileExists が false のとき badge は非表示", () => {
+    const { container } = render(
+      <TableView entries={localEntries} config={makeConfig({ columns: localColumns })} fileExists={() => false} />
+    );
+    expect(container.querySelector('a[href="/downloads/26.zip"]')).toBeNull();
+  });
+
+  it("外部URLの badge は fileExists に関わらず表示される", () => {
+    const extColumns: ColumnDef[] = [
+      { header: "Chart", type: "badge", label: "DL", url: "{{url_diff}}", align: "center" },
+    ];
+    const extEntries: TableEntry[] = [{ md5: "x", level: "1", url_diff: "https://stellabms.xyz/upload/4203" }];
+    const { container } = render(
+      <TableView entries={extEntries} config={makeConfig({ columns: extColumns })} fileExists={() => false} />
+    );
+    expect(container.querySelector('a[href="https://stellabms.xyz/upload/4203"]')).not.toBeNull();
+  });
+
+  it("fileExists 未指定（既定）ではローカルパス badge が表示される", () => {
+    const { container } = render(
+      <TableView entries={localEntries} config={makeConfig({ columns: localColumns })} />
+    );
+    expect(container.querySelector('a[href="/downloads/26.zip"]')).not.toBeNull();
+  });
+});
