@@ -50,6 +50,7 @@ Googleスプレッドシートからデータを配信する方法は [GASによ
 1. [Vercel](https://vercel.com/) にGitHubアカウントでサインアップ
 2. ダッシュボードで「Add New Project」→ フォークしたリポジトリを選択
 3. 「Project Name」にプロジェクト名を入力 → この名前がサイトのURLになります（例: `my-bms-table` → `my-bms-table.vercel.app`）
+  a. ドメインをお持ちの場合はカスタムドメインとして設定することも可能です
 4. そのまま「Deploy」をクリック
 
 以上で完了です。
@@ -61,11 +62,47 @@ Googleスプレッドシートからデータを配信する方法は [GASによ
 - `table.config.json` を変更してpushすると、Vercelが自動的に再デプロイします
   - 難易度表情報そのものの更新、サイト説明文の更新などを行う際は再度GitHub上でコミット・プッシュを行なってください
 
-## BMSクライアントからの読み込み
+## 5. テンプレート本体の更新
 
-デプロイされたサイトのURLをBMSクライアントの難易度表URLとして登録してください。
+このテンプレートにバグ修正や機能追加があった場合、フォーク元（upstream）の変更を取り込むことで、自分のリポジトリを最新の状態に更新できます。
 
-- beatoraja: 難易度表追加で `https://your-site.vercel.app/` を入力
+> **前提**: 更新を取り込むには、手順1で「Fork」ボタンからフォークしている必要があります。「Use this template」で作成した場合はフォーク元との履歴が繋がらず、取り込みが煩雑になります。
+
+### 方法A: GitHub の「Sync fork」ボタン（簡単）
+
+フォークしたリポジトリのページ上部に表示される **「Sync fork」→「Update branch」** を押すと、フォーク元の変更が取り込まれます。更新後、Vercelが自動的に再デプロイします。
+
+### 方法B: コマンドライン（確実／衝突時）
+
+```bash
+# 初回だけ: フォーク元をupstreamとして登録
+git remote add upstream https://github.com/meta-BE/bms-diff-table-template.git
+
+# 更新のたびに
+git fetch upstream
+git merge upstream/main
+npm install                # 依存関係が更新された場合に備えて
+git push                   # Vercelが自動再デプロイ
+```
+
+### コンフリクトが発生した場合
+
+自分で編集したファイルとフォーク元の変更が競合（コンフリクト）した場合は、内容を確認して解決してください。
+
+- `package-lock.json` で衝突した場合は、`npm install` で再生成すれば解決します。
+- 設定ファイルなどで競合した場合は、残したい内容を選んで解決し、コミットしてください。
+
+## BMSプレイヤーからの読み込み
+
+デプロイされたサイトのURLをBMSプレイヤーの難易度表URLとして登録してください。
+
+### beatoraja
+
+以下のいずれかのURLを難易度表追加で入力してください（beatoraja v0.8.8 で動作確認済み）。  
+[your-project]は3で設定したプロジェクト名に読み替えてください。
+
+- https://[your-project].vercel.app/
+- https://[your-project].vercel.app/header.json
 
 `/header.json` と `/data.json` が自動的に配信されます。
 
