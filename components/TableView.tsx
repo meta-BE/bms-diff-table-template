@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import type { TableEntry } from "@/lib/fetch-table-data";
 import type { ColumnDef, Align, TableConfig } from "@/lib/config";
-import { resolveCellUrl } from "@/lib/local-file";
+import { resolveCellUrl } from "@/lib/resolve-cell-url";
 import { EllipsisCell } from "@/components/EllipsisCell";
 
 interface TableViewProps {
