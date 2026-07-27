@@ -6,6 +6,7 @@ import { CacheWarmer } from "@/components/CacheWarmer";
 import { ValidationLogger } from "@/components/ValidationLogger";
 import { TableView } from "@/components/TableView";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { publicFileExists } from "@/lib/local-file";
 
 export default async function Page() {
   const entries = await fetchTableData();
@@ -40,6 +41,7 @@ export default async function Page() {
           <TableView
             entries={entries}
             config={config}
+            fileExists={publicFileExists}
           />
         </div>
       </main>
