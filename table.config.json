@@ -14,6 +14,7 @@
     { "header": "Title", "type": "link", "property": "title", "url": "https://bms-score-viewer.pages.dev/view?md5={{md5}}", "width": "30%" },
     { "header": "Artist", "type": "link", "property": "artist", "url": "{{url}}", "width": "25%" },
     { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}", "align": "center" },
+    { "header": "Mirror", "type": "badge", "label": "DL", "url": "/downloads/{{no}}.zip", "align": "center" },
     { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}", "align": "center" },
     { "header": "Comment", "type": "text", "property": "comment", "width": "30%", "ellipsis": true },
     { "header": "Rating", "type": "text", "property": "rating", "align": "center" },
