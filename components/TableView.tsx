@@ -1,12 +1,13 @@
 import { Fragment } from "react";
 import type { TableEntry } from "@/lib/fetch-table-data";
 import type { ColumnDef, Align, TableConfig } from "@/lib/config";
-import { resolveTemplate } from "@/lib/resolve-template";
+import { resolveCellUrl } from "@/lib/resolve-cell-url";
 import { EllipsisCell } from "@/components/EllipsisCell";
 
 interface TableViewProps {
   entries: TableEntry[];
   config: TableConfig;
+  fileExists?: (pathname: string) => boolean;
 }
 
 function groupByLevel(
@@ -76,7 +77,7 @@ function ExternalLink({ href, children }: { href: string; children: React.ReactN
   );
 }
 
-function CellContent({ column, entry, symbol, level }: { column: ColumnDef; entry: TableEntry; symbol: string; level: string }) {
+function CellContent({ column, entry, symbol, level, fileExists }: { column: ColumnDef; entry: TableEntry; symbol: string; level: string; fileExists: (pathname: string) => boolean }) {
   switch (column.type) {
     case "level":
       return <>{symbol}{level}</>;
@@ -85,19 +86,19 @@ function CellContent({ column, entry, symbol, level }: { column: ColumnDef; entr
     case "link": {
       if (!(column.property in entry)) return null;
       const displayText = toDisplayString(entry[column.property]);
-      const url = resolveTemplate(column.url, entry);
+      const url = resolveCellUrl(column.url, entry, fileExists);
       if (url) return <ExternalLink href={url}>{displayText}</ExternalLink>;
       return <>{displayText}</>;
     }
     case "badge": {
-      const url = resolveTemplate(column.url, entry);
+      const url = resolveCellUrl(column.url, entry, fileExists);
       if (!url) return null;
       return <ExternalLink href={url}>{column.label}</ExternalLink>;
     }
   }
 }
 
-export function TableView({ entries, config }: TableViewProps) {
+export function TableView({ entries, config, fileExists = () => true }: TableViewProps) {
   const { symbol, levelOrder, columns, tableStyle } = config;
   const grouped = groupByLevel(entries, levelOrder);
   const cellClassNames = columns.map((col) => {
@@ -139,10 +140,10 @@ export function TableView({ entries, config }: TableViewProps) {
                 <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell">
                   {col.ellipsis ? (
                     <EllipsisCell text={getCellText(col, entry, symbol, level)}>
-                      <CellContent column={col} entry={entry} symbol={symbol} level={level} />
+                      <CellContent column={col} entry={entry} symbol={symbol} level={level} fileExists={fileExists} />
                     </EllipsisCell>
                   ) : (
-                    <CellContent column={col} entry={entry} symbol={symbol} level={level} />
+                    <CellContent column={col} entry={entry} symbol={symbol} level={level} fileExists={fileExists} />
                   )}
                 </div>
               ))}
