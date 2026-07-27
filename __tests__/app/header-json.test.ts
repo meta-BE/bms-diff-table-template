@@ -9,7 +9,7 @@ describe("GET /header.json", () => {
     expect(response.status).toBe(200);
     expect(body.name).toBeTypeOf("string");
     expect(body.symbol).toBeTypeOf("string");
-    expect(body.data_url).toBe("/data.json");
+    expect(body.data_url).toBe("data.json");
   });
 
   it("levelOrderが設定されていればlevel_orderを含む", async () => {
