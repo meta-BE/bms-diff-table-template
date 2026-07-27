@@ -1,14 +1,12 @@
 # ファイル配信
 
-zip などの圧縮ファイルをこのテンプレート自身でホスティングし、難易度表からダウンロードリンクを張る方法を説明します。単曲や差分パッケージの配布を想定しています。
-
-> このページの制限値は **2026年7月現在** の情報です。最新の値は各公式ドキュメントを参照してください。
+zip などの圧縮ファイルをこのテンプレート自身でホスティングし、難易度表からダウンロードリンクを張る方法を説明します。単曲や差分ファイル・LR2 courseファイルの配布を想定しています。
 
 ## 仕組み
 
 `public/downloads/` に置いたファイルは、Vercel によってそのまま静的配信されます。
 
-- 例: `public/downloads/song.zip` → `https://<あなたのサイト>/downloads/song.zip`
+- 例: `public/downloads/chart.zip` → `https://<あなたのサイト>/downloads/chart.zip`
 - 静的ファイルの配信はビルド扱いされないため、デプロイ回数やビルド時間を消費しません。
 - zip はブラウザが自動的にダウンロードするため、追加の設定は不要です。
 
@@ -19,13 +17,13 @@ zip などの圧縮ファイルをこのテンプレート自身でホスティ�
 配布したい zip を `public/downloads/` に置き、コミット・プッシュします。
 
 ```bash
-cp song.zip public/downloads/
-git add public/downloads/song.zip
-git commit -m "add song.zip"
+cp chart.zip public/downloads/
+git add public/downloads/chart.zip
+git commit -m "add chart.zip"
 git push
 ```
 
-プッシュ後、Vercel が自動的に再デプロイし、`/downloads/song.zip` で配信されます。
+プッシュ後、Vercel が自動的に再デプロイし、`/downloads/chart.zip` で配信されます。
 
 ### 2. 表からリンクする
 
@@ -39,7 +37,7 @@ git push
 
 | title | file |
 |---|---|
-| My Song | song.zip |
+| My Song | chart.zip |
 
 ```json
 { "header": "DL", "type": "badge", "label": "DL", "url": "/downloads/{{file}}", "align": "center" }
@@ -47,7 +45,7 @@ git push
 
 **パターンB: データにパスを直書きする**
 
-データに完全なパスを入れます（例: `url_diff` 列 = `/downloads/song.zip`）。
+データに完全なパスを入れます（例: `url_diff` 列 = `/downloads/chart.zip`）。
 
 ```json
 { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}", "align": "center" }
@@ -84,9 +82,12 @@ git push
 - 日本語タイトルの曲でも、ファイル名はローマ字などに変換することを推奨します。
   - 例: `曲名.zip` → `song-title.zip`
 
-## サイズと容量の制限
+## サイズと容量の制限（参考）
 
-配信ファイルは Git（GitHub）にコミットして Vercel から配信するため、両者の制限を受けます。
+配信ファイルは Git（GitHub）にコミットして Vercel から配信するため、両者の制限を受けます。  
+ただし、通常のサイズ・量の差分ファイル配布では問題にならないケースがほとんどと思われます。
+
+> このページの制限値は **2026年7月現在** の情報です。最新の値は各公式ドキュメントを参照してください。
 
 ### GitHub（[公式ドキュメント](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github)）
 
@@ -94,10 +95,7 @@ git push
 |---|---|
 | 1ファイル 50 MiB 超 | 警告が出る（プッシュ自体は可能） |
 | 1ファイル 100 MiB 超 | **ブロックされる**（通常の Git では追加不可） |
-| ブラウザからのアップロード | 25 MiB まで |
 | リポジトリ全体 | 1 GB 未満が理想、5 GB 未満を強く推奨 |
-
-「ブラウザからのアップロード 25 MiB」は GitHub の Web 画面から直接ファイルを追加する場合の制限です。上記手順の `git push` による追加では該当しません。
 
 ### Vercel Hobby プラン（[公式ドキュメント](https://vercel.com/docs/limits)）
 
@@ -109,5 +107,5 @@ git push
 
 ### 運用の目安
 
-- **1ファイルは 50 MiB 未満**に収めることを目安にしてください（GitHub の警告回避とリポジトリ肥大化防止のため）。
+- **1ファイルは 50 MiB 未満**に収めることを目安にしてください。
 - これを超えるファイルや、多数・大容量を配布したい場合は、リポジトリに含めず**外部のファイル配布サービス等**に置き、`url` に外部URLを指定してください（例: `{ "url": "{{url_diff}}" }` で外部の配布ページURLを参照）。
