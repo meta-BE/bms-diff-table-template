@@ -20,6 +20,22 @@ const options: FilterOption[] = [
   { value: "", label: "（空）", count: 1 },
 ];
 
+/**
+ * 画面の大きさを決める。実際のブラウザと同じく、window.innerWidth / innerHeight にはスクロールバーの幅を含め、
+ * documentElement.clientWidth / clientHeight には含めない。
+ */
+function setViewport({ width, height, scrollbarWidth = 0, scrollbarHeight = 0 }: {
+  width: number;
+  height: number;
+  scrollbarWidth?: number;
+  scrollbarHeight?: number;
+}) {
+  Object.defineProperty(window, "innerWidth", { configurable: true, value: width + scrollbarWidth });
+  Object.defineProperty(window, "innerHeight", { configurable: true, value: height + scrollbarHeight });
+  Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, get: () => width });
+  Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, get: () => height });
+}
+
 function setup(selected: Set<string> = new Set()) {
   const onToggle = vi.fn();
   const onClear = vi.fn();
@@ -108,8 +124,7 @@ describe("FilterDropdown - 幅", () => {
     const { dialog } = setup();
     const button = screen.getByRole("button", { name: "Published でフィルタ" });
     button.getBoundingClientRect = () => ({ top: 0, bottom: 20, left: 100 }) as DOMRect;
-    Object.defineProperty(window, "innerHeight", { configurable: true, value: 800 });
-    Object.defineProperty(window, "innerWidth", { configurable: true, value: 375 });
+    setViewport({ width: 375, height: 800 });
     fireEvent.click(button);
     expect(dialog.style.maxWidth).toBe(`${375 - 16}px`);
     const label = within(dialog).getAllByRole("checkbox", { hidden: true })[0].closest("label")!;
@@ -127,9 +142,28 @@ describe("FilterDropdown - 位置", () => {
     Object.defineProperty(dialog, "clientHeight", { configurable: true, get: () => 300 });
     Object.defineProperty(dialog, "offsetHeight", { configurable: true, get: () => 302 });
     Object.defineProperty(dialog, "offsetWidth", { configurable: true, get: () => 150 });
-    Object.defineProperty(window, "innerHeight", { configurable: true, value: 600 });
-    Object.defineProperty(window, "innerWidth", { configurable: true, value: 1000 });
+    setViewport({ width: 1000, height: 600 });
     fireEvent.click(button);
     expect(dialog.style.top).toBe(`${500 - 302}px`);
+  });
+
+  // window.innerWidth はスクロールバーの幅を含むので、それを基準にすると右端のパネルがスクロールバーの下に入る
+  it("縦スクロールバーがあるとき、右端に寄せたパネルはスクロールバーの手前に余白8pxを空けて置く", () => {
+    const { dialog } = setup();
+    const button = screen.getByRole("button", { name: "Published でフィルタ" });
+    button.getBoundingClientRect = () => ({ top: 280, bottom: 300, left: 1240 }) as DOMRect;
+    Object.defineProperty(dialog, "offsetWidth", { configurable: true, get: () => 146 });
+    setViewport({ width: 1265, height: 720, scrollbarWidth: 15 });
+    fireEvent.click(button);
+    expect(dialog.style.left).toBe(`${1265 - 8 - 146}px`);
+  });
+
+  it("横スクロールバーがあるとき、下に開くパネルの最大の高さはスクロールバーの手前で余白8pxを空ける", () => {
+    const { dialog } = setup();
+    const button = screen.getByRole("button", { name: "Published でフィルタ" });
+    button.getBoundingClientRect = () => ({ top: 100, bottom: 120, left: 100 }) as DOMRect;
+    setViewport({ width: 1000, height: 600, scrollbarHeight: 15 });
+    fireEvent.click(button);
+    expect(dialog.style.maxHeight).toBe(`${600 - 120 - 8}px`);
   });
 });
