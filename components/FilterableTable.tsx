@@ -76,12 +76,13 @@ interface TableRowProps {
   symbol: string;
   cellClassNames: string[];
   rowClassName: string;
+  hidden: boolean;
 }
 
 // フィルタを切り替えたときに、表示内容が変わらない行の再描画を省く
-const TableRow = memo(function TableRow({ row, columns, symbol, cellClassNames, rowClassName }: TableRowProps) {
+const TableRow = memo(function TableRow({ row, columns, symbol, cellClassNames, rowClassName, hidden }: TableRowProps) {
   return (
-    <div className={rowClassName} role="row">
+    <div className={rowClassName} role="row" hidden={hidden}>
       {columns.map((col, i) => (
         <div key={`${col.header}-${i}`} className={cellClassNames[i]} role="cell">
           {col.ellipsis ? (
@@ -112,8 +113,10 @@ export function FilterableTable({ rows, config }: { rows: ClientRow[]; config: F
     () => specs.map((spec, i) => (spec ? buildFilterOptions(rows, i, spec, { levelOrder, symbol }) : null)),
     [specs, rows, levelOrder, symbol]
   );
-  const visibleRows = useMemo(() => applyFilter(rows, filter), [rows, filter]);
-  const groups = useMemo(() => groupRowsByLevel(visibleRows, levelOrder), [visibleRows, levelOrder]);
+  // 除外した行はアンマウントせず hidden で隠す。解除のたびに全行の DOM を作り直すと、
+  // 2,000行規模で1秒以上かかるため
+  const visibleSet = useMemo(() => (filter ? new Set(applyFilter(rows, filter)) : null), [rows, filter]);
+  const groups = useMemo(() => groupRowsByLevel(rows, levelOrder), [rows, levelOrder]);
   const cellClassNames = useMemo(() => columns.map(cellClassName), [columns]);
 
   // 同時に有効なのは1カラムだけ。別のカラムで選んだら、それまでの選択は捨てる
@@ -157,24 +160,33 @@ export function FilterableTable({ rows, config }: { rows: ClientRow[]; config: F
         ))}
       </div>
 
-      {Array.from(groups).map(([level, levelRows]) => (
-        <Fragment key={`level-${level}`}>
-          <div className="table-grid-header-row bg-base-300 text-center font-bold p-2" role="row">
-            {symbol}{level} ({levelRows.length}譜面)
-          </div>
+      {Array.from(groups).map(([level, levelRows]) => {
+        // ストライプと件数は、表示中の行だけで数え直す
+        let visibleIndex = 0;
+        const items = levelRows.map((row) => {
+          const visible = !visibleSet || visibleSet.has(row);
+          return { row, visible, index: visible ? visibleIndex++ : 0 };
+        });
+        return (
+          <Fragment key={`level-${level}`}>
+            <div className="table-grid-header-row bg-base-300 text-center font-bold p-2" role="row">
+              {symbol}{level} ({visibleIndex}譜面)
+            </div>
 
-          {levelRows.map((row, indexInGroup) => (
-            <TableRow
-              key={row.md5}
-              row={row}
-              columns={columns}
-              symbol={symbol}
-              cellClassNames={cellClassNames}
-              rowClassName={rowClassName(indexInGroup)}
-            />
-          ))}
-        </Fragment>
-      ))}
+            {items.map(({ row, visible, index }) => (
+              <TableRow
+                key={row.md5}
+                row={row}
+                columns={columns}
+                symbol={symbol}
+                cellClassNames={cellClassNames}
+                rowClassName={rowClassName(index)}
+                hidden={!visible}
+              />
+            ))}
+          </Fragment>
+        );
+      })}
     </div>
   );
 }

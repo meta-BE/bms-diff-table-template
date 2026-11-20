@@ -314,8 +314,13 @@ describe("TableView - フィルタ", () => {
       <TableView entries={data} config={makeConfig({ columns: filterColumns, levelOrder: [], ...overrides })} />
     );
   }
+  // 絞り込みで除外した行は hidden 属性で隠すだけなので、表示中の行は :not([hidden]) で数える
   const songRows = (container: HTMLElement) =>
-    Array.from(container.querySelectorAll<HTMLElement>('[role="row"].grid-cols-subgrid'));
+    Array.from(container.querySelectorAll<HTMLElement>('[role="row"].grid-cols-subgrid:not([hidden])'));
+  const rowOfTitle = (container: HTMLElement, title: string) =>
+    Array.from(container.querySelectorAll<HTMLElement>('[role="row"].grid-cols-subgrid')).find(
+      (row) => row.querySelectorAll('[role="cell"]')[1].textContent === title
+    )!;
   const visibleTitles = (container: HTMLElement) =>
     songRows(container).map((row) => row.querySelectorAll('[role="cell"]')[1].textContent);
   const levelHeaders = (container: HTMLElement) =>
@@ -415,6 +420,22 @@ describe("TableView - フィルタ", () => {
       .getAllByRole("checkbox", { hidden: true })
       .map((box) => box.closest("label")!.textContent);
     expect(labels).toEqual(["★3 (1)", "★1 (2)", "★2 (2)"]);
+  });
+
+  it("除外した行は削除せず hidden 属性で隠す", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    expect(rowOfTitle(container, "A").hasAttribute("hidden")).toBe(true);
+    expect(rowOfTitle(container, "B").hasAttribute("hidden")).toBe(false);
+  });
+
+  it("絞り込みを解除しても、行の DOM 要素は作り直さない", () => {
+    const { container } = renderTable();
+    const rowA = rowOfTitle(container, "A");
+    check("Rating", "★★★★★");
+    check("Rating", "★★★★★");
+    expect(rowOfTitle(container, "A")).toBe(rowA);
+    expect(rowA.hasAttribute("hidden")).toBe(false);
   });
 
   it("level や値が数値でも絞り込める", () => {
