@@ -1,11 +1,13 @@
 "use client";
 
-import { Fragment, memo, useMemo } from "react";
+import { Fragment, memo, useCallback, useMemo, useState } from "react";
 // lib/config と lib/client-rows はサーバー専用の処理（fs）を含むため、型だけを読み込む
 import type { Align, ColumnDef, TableStyle } from "@/lib/config";
 import type { ClientRow } from "@/lib/client-rows";
 import { groupRowsByLevel, resolveLevelOrder } from "@/lib/group-by-level";
+import { applyFilter, buildFilterOptions, resolveFilterSpec, type FilterState } from "@/lib/filter";
 import { EllipsisCell } from "@/components/EllipsisCell";
+import { FilterDropdown } from "@/components/FilterDropdown";
 
 export interface FilterableTableConfig {
   symbol: string;
@@ -13,6 +15,8 @@ export interface FilterableTableConfig {
   columns: ColumnDef[];
   tableStyle: TableStyle;
 }
+
+const NO_SELECTION: ReadonlySet<string> = new Set();
 
 const ALIGN_CLASS: Record<Align, string> = {
   left: "",
@@ -96,12 +100,34 @@ const TableRow = memo(function TableRow({ row, columns, symbol, cellClassNames, 
 export function FilterableTable({ rows, config }: { rows: ClientRow[]; config: FilterableTableConfig }) {
   const { symbol, columns, tableStyle } = config;
 
+  const [filter, setFilter] = useState<FilterState | null>(null);
+
+  // 難易度の並びと選択肢は絞り込み前の全行から決める（0件の難易度の見出しを残すため）
   const levelOrder = useMemo(
     () => resolveLevelOrder(rows.map((row) => row.level), config.levelOrder),
     [rows, config.levelOrder]
   );
-  const groups = useMemo(() => groupRowsByLevel(rows, levelOrder), [rows, levelOrder]);
+  const specs = useMemo(() => columns.map(resolveFilterSpec), [columns]);
+  const optionsByColumn = useMemo(
+    () => specs.map((spec, i) => (spec ? buildFilterOptions(rows, i, spec, { levelOrder, symbol }) : null)),
+    [specs, rows, levelOrder, symbol]
+  );
+  const visibleRows = useMemo(() => applyFilter(rows, filter), [rows, filter]);
+  const groups = useMemo(() => groupRowsByLevel(visibleRows, levelOrder), [visibleRows, levelOrder]);
   const cellClassNames = useMemo(() => columns.map(cellClassName), [columns]);
+
+  // 同時に有効なのは1カラムだけ。別のカラムで選んだら、それまでの選択は捨てる
+  const toggleValue = useCallback((columnIndex: number, value: string) => {
+    setFilter((current) => {
+      const values = new Set(current?.columnIndex === columnIndex ? current.values : []);
+      if (values.has(value)) values.delete(value);
+      else values.add(value);
+      return values.size > 0 ? { columnIndex, values } : null;
+    });
+  }, []);
+  const clearColumn = useCallback((columnIndex: number) => {
+    setFilter((current) => (current?.columnIndex === columnIndex ? null : current));
+  }, []);
 
   const rowClassName = (indexInGroup: number) =>
     [
@@ -118,6 +144,15 @@ export function FilterableTable({ rows, config }: { rows: ClientRow[]; config: F
         {columns.map((col, i) => (
           <div key={`${col.header}-${i}`} className="font-bold bg-base-200 text-center p-2" role="columnheader">
             {col.header}
+            {optionsByColumn[i] && (
+              <FilterDropdown
+                header={col.header}
+                options={optionsByColumn[i]}
+                selected={filter?.columnIndex === i ? filter.values : NO_SELECTION}
+                onToggle={(value) => toggleValue(i, value)}
+                onClear={() => clearColumn(i)}
+              />
+            )}
           </div>
         ))}
       </div>

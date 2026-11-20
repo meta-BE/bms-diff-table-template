@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeAll } from "vitest";
-import { render } from "@testing-library/react";
+import { describe, it, expect, beforeAll, afterEach } from "vitest";
+import { render, screen, fireEvent, within, cleanup } from "@testing-library/react";
 import { TableView } from "@/components/TableView";
 import type { TableEntry } from "@/lib/fetch-table-data";
 import type { ColumnDef, TableConfig } from "@/lib/config";
+import { installPopoverStub } from "../helpers/popover-stub";
 
 beforeAll(() => {
   global.ResizeObserver = class {
@@ -281,5 +282,149 @@ describe("TableView - ローカルパス実在ゲート", () => {
       <TableView entries={localEntries} config={makeConfig({ columns: localColumns })} />
     );
     expect(container.querySelector('a[href="/downloads/26.zip"]')).not.toBeNull();
+  });
+});
+
+describe("TableView - フィルタ", () => {
+  beforeAll(() => {
+    installPopoverStub();
+  });
+
+  // vitest の globals が無効なため、Testing Library の自動クリーンアップが働かない
+  afterEach(() => {
+    cleanup();
+  });
+
+  const filterEntries: TableEntry[] = [
+    { md5: "a", level: "1", title: "A", rating: "★★★☆☆", year: "2024" },
+    { md5: "b", level: "1", title: "B", rating: "★★★★★", year: "2025" },
+    { md5: "c", level: "2", title: "C", rating: "★★★☆☆", year: "2025" },
+    { md5: "d", level: "2", title: "D", rating: "★☆☆☆☆", year: "2026" },
+    { md5: "e", level: "3", title: "E", rating: "★★★★★", year: "2024" },
+  ];
+  const filterColumns: ColumnDef[] = [
+    { header: "Lv", type: "level" },
+    { header: "Title", type: "text", property: "title" },
+    { header: "Rating", type: "text", property: "rating", filter: true },
+    { header: "Published", type: "text", property: "year", filter: { order: "desc" } },
+  ];
+
+  function renderTable(overrides: Partial<TableConfig> = {}, data: TableEntry[] = filterEntries) {
+    return render(
+      <TableView entries={data} config={makeConfig({ columns: filterColumns, levelOrder: [], ...overrides })} />
+    );
+  }
+  const songRows = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll<HTMLElement>('[role="row"].grid-cols-subgrid'));
+  const visibleTitles = (container: HTMLElement) =>
+    songRows(container).map((row) => row.querySelectorAll('[role="cell"]')[1].textContent);
+  const levelHeaders = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll(".table-grid-header-row")).map((el) => el.textContent);
+  // 閉じたパネルは display: none でアクセシビリティツリーから外れるため、ボタンの aria-controls からたどる
+  const dialogOf = (header: string, index = 0) =>
+    document.getElementById(
+      screen.getAllByRole("button", { name: new RegExp(`^${header} でフィルタ`) })[index].getAttribute("aria-controls")!
+    )!;
+  const check = (header: string, label: string, index = 0) =>
+    fireEvent.click(within(dialogOf(header, index)).getByText(label));
+  const filterButton = (header: string) => screen.getByRole("button", { name: new RegExp(`^${header} でフィルタ`) });
+
+  it("filter を設定したカラムの見出しにだけ、フィルタボタンが出る", () => {
+    renderTable();
+    expect(screen.getAllByRole("button", { name: /でフィルタ/ }).map((b) => b.getAttribute("aria-label"))).toEqual([
+      "Rating でフィルタ",
+      "Published でフィルタ",
+    ]);
+  });
+
+  it("チェックすると一致する行だけが表示され、見出しの件数が変わる", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    expect(visibleTitles(container)).toEqual(["B", "E"]);
+    expect(levelHeaders(container)).toEqual(["★1 (1譜面)", "★2 (0譜面)", "★3 (1譜面)"]);
+  });
+
+  it("0件の難易度は見出しだけを表示する", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    expect(levelHeaders(container)).toContain("★2 (0譜面)");
+    expect(songRows(container).filter((row) => row.querySelector('[role="cell"]')!.textContent === "★2")).toHaveLength(0);
+  });
+
+  it("同じカラムで複数選択すると OR 条件で表示する", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    check("Rating", "★☆☆☆☆");
+    expect(visibleTitles(container)).toEqual(["B", "D", "E"]);
+  });
+
+  it("別のカラムで選ぶと、前のカラムの選択が外れる", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    check("Published", "2024");
+    expect(visibleTitles(container)).toEqual(["A", "E"]);
+    const ratingBoxes = within(dialogOf("Rating")).getAllByRole("checkbox", { hidden: true }) as HTMLInputElement[];
+    expect(ratingBoxes.some((box) => box.checked)).toBe(false);
+    expect(filterButton("Rating").className).not.toContain("text-primary");
+    expect(filterButton("Published").className).toContain("text-primary");
+  });
+
+  it("最後のチェックを外すと、全件の表示に戻り、ボタンの強調表示も消える", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    check("Rating", "★★★★★");
+    expect(visibleTitles(container)).toEqual(["A", "B", "C", "D", "E"]);
+    expect(filterButton("Rating").className).not.toContain("text-primary");
+  });
+
+  it("解除ボタンで全件の表示に戻る", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    fireEvent.click(within(dialogOf("Rating")).getByText("解除"));
+    expect(visibleTitles(container)).toEqual(["A", "B", "C", "D", "E"]);
+  });
+
+  it("ストライプは絞り込み後の行で付け直す", () => {
+    const { container } = renderTable({ tableStyle: { maxWidth: 1536, stripe: true, hover: false } });
+    check("Published", "2025");
+    const rows = songRows(container);
+    expect(visibleTitles(container)).toEqual(["B", "C"]);
+    // B は絞り込み前は難易度1の2行目（ストライプなし）だが、絞り込み後は先頭になる
+    expect(rows.map((row) => row.className.includes("bg-base-content/5"))).toEqual([true, true]);
+  });
+
+  it("見出しが重複していても、カラムの位置で区別する", () => {
+    renderTable({
+      columns: [
+        { header: "X", type: "text", property: "rating", filter: true },
+        { header: "X", type: "text", property: "year", filter: true },
+      ],
+    });
+    check("X", "2025", 1);
+    const buttons = screen.getAllByRole("button", { name: /^X でフィルタ/ });
+    expect(buttons[0].className).not.toContain("text-primary");
+    expect(buttons[1].className).toContain("text-primary");
+  });
+
+  it("Lv フィルタの選択肢は、symbol+level で表の難易度の順に並ぶ", () => {
+    renderTable({
+      columns: [{ header: "Lv", type: "level", filter: true }, { header: "Title", type: "text", property: "title" }],
+      levelOrder: ["3", "1", "2"],
+    });
+    const labels = within(dialogOf("Lv"))
+      .getAllByRole("checkbox", { hidden: true })
+      .map((box) => box.closest("label")!.textContent);
+    expect(labels).toEqual(["★3 (1)", "★1 (2)", "★2 (2)"]);
+  });
+
+  it("level や値が数値でも絞り込める", () => {
+    const numeric = [
+      { md5: "n1", level: 1, title: "N1", rating: "★", year: 2024 },
+      { md5: "n2", level: 2, title: "N2", rating: "★", year: 2025 },
+    ] as unknown as TableEntry[];
+    const { container } = renderTable({}, numeric);
+    check("Published", "2024");
+    expect(visibleTitles(container)).toEqual(["N1"]);
+    expect(levelHeaders(container)).toEqual(["★1 (1譜面)", "★2 (0譜面)"]);
   });
 });
