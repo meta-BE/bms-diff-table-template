@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeAll } from "vitest";
-import { render } from "@testing-library/react";
+import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
+import { render, screen, fireEvent, within, cleanup, waitFor } from "@testing-library/react";
 import { TableView } from "@/components/TableView";
 import type { TableEntry } from "@/lib/fetch-table-data";
 import type { ColumnDef, TableConfig } from "@/lib/config";
+import { installPopoverStub } from "../helpers/popover-stub";
 
 beforeAll(() => {
   global.ResizeObserver = class {
@@ -281,5 +282,298 @@ describe("TableView - ローカルパス実在ゲート", () => {
       <TableView entries={localEntries} config={makeConfig({ columns: localColumns })} />
     );
     expect(container.querySelector('a[href="/downloads/26.zip"]')).not.toBeNull();
+  });
+});
+
+describe("TableView - フィルタ", () => {
+  beforeAll(() => {
+    installPopoverStub();
+  });
+
+  // vitest の globals が無効なため、Testing Library の自動クリーンアップが働かない
+  afterEach(() => {
+    cleanup();
+  });
+
+  const filterEntries: TableEntry[] = [
+    { md5: "a", level: "1", title: "A", rating: "★★★☆☆", year: "2024" },
+    { md5: "b", level: "1", title: "B", rating: "★★★★★", year: "2025" },
+    { md5: "c", level: "2", title: "C", rating: "★★★☆☆", year: "2025" },
+    { md5: "d", level: "2", title: "D", rating: "★☆☆☆☆", year: "2026" },
+    { md5: "e", level: "3", title: "E", rating: "★★★★★", year: "2024" },
+  ];
+  const filterColumns: ColumnDef[] = [
+    { header: "Lv", type: "level" },
+    { header: "Title", type: "text", property: "title" },
+    { header: "Rating", type: "text", property: "rating", filter: true },
+    { header: "Published", type: "text", property: "year", filter: { order: "desc" } },
+  ];
+
+  function renderTable(overrides: Partial<TableConfig> = {}, data: TableEntry[] = filterEntries) {
+    return render(
+      <TableView entries={data} config={makeConfig({ columns: filterColumns, levelOrder: [], ...overrides })} />
+    );
+  }
+  // 絞り込みで除外した行は hidden 属性で隠すだけなので、表示中の行は :not([hidden]) で数える
+  const songRows = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll<HTMLElement>('[role="row"].grid-cols-subgrid:not([hidden])'));
+  const rowOfTitle = (container: HTMLElement, title: string) =>
+    Array.from(container.querySelectorAll<HTMLElement>('[role="row"].grid-cols-subgrid')).find(
+      (row) => row.querySelectorAll('[role="cell"]')[1].textContent === title
+    )!;
+  const visibleTitles = (container: HTMLElement) =>
+    songRows(container).map((row) => row.querySelectorAll('[role="cell"]')[1].textContent);
+  const levelHeaders = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll(".table-grid-header-row")).map((el) => el.textContent);
+  // 閉じたパネルは display: none でアクセシビリティツリーから外れるため、ボタンの aria-controls からたどる
+  const dialogOf = (header: string, index = 0) =>
+    document.getElementById(
+      screen.getAllByRole("button", { name: new RegExp(`^${header} でフィルタ`) })[index].getAttribute("aria-controls")!
+    )!;
+  const check = (header: string, label: string, index = 0) =>
+    fireEvent.click(within(dialogOf(header, index)).getByText(label));
+  const filterButton = (header: string) => screen.getByRole("button", { name: new RegExp(`^${header} でフィルタ`) });
+
+  it("見出しの文字とフィルタボタンを、折り返さないひとつの要素にまとめる", () => {
+    renderTable();
+    const button = filterButton("Published");
+    const wrapper = button.parentElement!;
+    expect(wrapper.className).toContain("whitespace-nowrap");
+    expect(wrapper.textContent).toContain("Published");
+    expect(wrapper.closest('[role="columnheader"]')).not.toBeNull();
+  });
+
+  it("filter を設定したカラムの見出しにだけ、フィルタボタンが出る", () => {
+    renderTable();
+    expect(screen.getAllByRole("button", { name: /でフィルタ/ }).map((b) => b.getAttribute("aria-label"))).toEqual([
+      "Rating でフィルタ",
+      "Published でフィルタ",
+    ]);
+  });
+
+  it("チェックすると一致する行だけが表示され、見出しの件数が変わる", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    expect(visibleTitles(container)).toEqual(["B", "E"]);
+    expect(levelHeaders(container)).toEqual(["★1 (1譜面)", "★2 (0譜面)", "★3 (1譜面)"]);
+  });
+
+  it("0件の難易度は見出しだけを表示する", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    expect(levelHeaders(container)).toContain("★2 (0譜面)");
+    expect(songRows(container).filter((row) => row.querySelector('[role="cell"]')!.textContent === "★2")).toHaveLength(0);
+  });
+
+  it("同じカラムで複数選択すると OR 条件で表示する", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    check("Rating", "★☆☆☆☆");
+    expect(visibleTitles(container)).toEqual(["B", "D", "E"]);
+  });
+
+  it("別のカラムで選ぶと、前のカラムの選択が外れる", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    check("Published", "2024");
+    expect(visibleTitles(container)).toEqual(["A", "E"]);
+    const ratingBoxes = within(dialogOf("Rating")).getAllByRole("checkbox", { hidden: true }) as HTMLInputElement[];
+    expect(ratingBoxes.some((box) => box.checked)).toBe(false);
+    expect(filterButton("Rating").className).not.toContain("text-primary");
+    expect(filterButton("Published").className).toContain("text-primary");
+  });
+
+  it("最後のチェックを外すと、全件の表示に戻り、ボタンの強調表示も消える", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    check("Rating", "★★★★★");
+    expect(visibleTitles(container)).toEqual(["A", "B", "C", "D", "E"]);
+    expect(filterButton("Rating").className).not.toContain("text-primary");
+  });
+
+  it("解除ボタンで全件の表示に戻る", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    fireEvent.click(within(dialogOf("Rating")).getByText("解除"));
+    expect(visibleTitles(container)).toEqual(["A", "B", "C", "D", "E"]);
+  });
+
+  it("ストライプは絞り込み後の行で付け直す", () => {
+    const { container } = renderTable({ tableStyle: { maxWidth: 1536, stripe: true, hover: false } });
+    check("Published", "2025");
+    const rows = songRows(container);
+    expect(visibleTitles(container)).toEqual(["B", "C"]);
+    // B は絞り込み前は難易度1の2行目（ストライプなし）だが、絞り込み後は先頭になる
+    expect(rows.map((row) => row.className.includes("bg-base-content/5"))).toEqual([true, true]);
+  });
+
+  it("見出しが重複していても、カラムの位置で区別する", () => {
+    renderTable({
+      columns: [
+        { header: "X", type: "text", property: "rating", filter: true },
+        { header: "X", type: "text", property: "year", filter: true },
+      ],
+    });
+    check("X", "2025", 1);
+    const buttons = screen.getAllByRole("button", { name: /^X でフィルタ/ });
+    expect(buttons[0].className).not.toContain("text-primary");
+    expect(buttons[1].className).toContain("text-primary");
+  });
+
+  it("Lv フィルタの選択肢は、symbol+level で表の難易度の順に並ぶ", () => {
+    renderTable({
+      columns: [{ header: "Lv", type: "level", filter: true }, { header: "Title", type: "text", property: "title" }],
+      levelOrder: ["3", "1", "2"],
+    });
+    const labels = within(dialogOf("Lv"))
+      .getAllByRole("checkbox", { hidden: true })
+      .map((box) => box.closest("label")!.textContent);
+    expect(labels).toEqual(["★3 (1)", "★1 (2)", "★2 (2)"]);
+  });
+
+  it("除外した行は削除せず hidden 属性で隠す", () => {
+    const { container } = renderTable();
+    check("Rating", "★★★★★");
+    expect(rowOfTitle(container, "A").hasAttribute("hidden")).toBe(true);
+    expect(rowOfTitle(container, "B").hasAttribute("hidden")).toBe(false);
+  });
+
+  it("絞り込みを解除しても、行の DOM 要素は作り直さない", () => {
+    const { container } = renderTable();
+    const rowA = rowOfTitle(container, "A");
+    check("Rating", "★★★★★");
+    check("Rating", "★★★★★");
+    expect(rowOfTitle(container, "A")).toBe(rowA);
+    expect(rowA.hasAttribute("hidden")).toBe(false);
+  });
+
+  it("level と levelOrder が数値でも、levelOrder の順に並ぶ（GAS は数値のセルを数値で返す）", () => {
+    const numeric = [
+      { md5: "n1", level: 1, title: "N1", rating: "★", year: "2024" },
+      { md5: "n2", level: 2, title: "N2", rating: "★", year: "2025" },
+    ] as unknown as TableEntry[];
+    const { container } = renderTable({ levelOrder: [2, 1] as unknown as string[] }, numeric);
+    expect(levelHeaders(container)).toEqual(["★2 (1譜面)", "★1 (1譜面)"]);
+  });
+
+  it("level や値が数値でも絞り込める", () => {
+    const numeric = [
+      { md5: "n1", level: 1, title: "N1", rating: "★", year: 2024 },
+      { md5: "n2", level: 2, title: "N2", rating: "★", year: 2025 },
+    ] as unknown as TableEntry[];
+    const { container } = renderTable({}, numeric);
+    check("Published", "2024");
+    expect(visibleTitles(container)).toEqual(["N1"]);
+    expect(levelHeaders(container)).toEqual(["★1 (1譜面)", "★2 (0譜面)"]);
+  });
+});
+
+describe("TableView - 仮想スクロール", () => {
+  const ratings = ["★★★★★", "★★★★☆", "★★★☆☆", "★★☆☆☆", "★☆☆☆☆"];
+  const makeEntries = (n: number): TableEntry[] =>
+    Array.from({ length: n }, (_, i) => ({ md5: `m${i}`, level: String(i % 3), title: `T${i}`, rating: ratings[i % 5] }));
+  const virtualColumns: ColumnDef[] = [
+    { header: "Lv", type: "level" },
+    { header: "Title", type: "text", property: "title" },
+    { header: "Rating", type: "text", property: "rating", filter: true },
+  ];
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
+  const originalScrollHeight = Object.getOwnPropertyDescriptor(Element.prototype, "scrollHeight");
+
+  beforeAll(() => {
+    installPopoverStub();
+    // jsdom にはレイアウトがなく高さが0になり、全行が表示範囲に入ってしまうため、行の高さを 40px とみなす
+    // （@tanstack/react-virtual は offsetHeight で行の高さを実測する）
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, get: () => 40 });
+    // ページの高さも 0 になり、0 以外のスクロール位置が「行き過ぎ」として無視されるため、実際のページに近い高さにする
+    Object.defineProperty(Element.prototype, "scrollHeight", { configurable: true, get: () => 400 * 40 });
+  });
+
+  afterEach(() => {
+    cleanup();
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 0 });
+  });
+
+  afterAll(() => {
+    if (originalOffsetHeight) Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
+    if (originalScrollHeight) Object.defineProperty(Element.prototype, "scrollHeight", originalScrollHeight);
+  });
+
+  // 仮想スクロールの本体は遅延読み込みなので、行が描画されるまで待つ
+  const renderVirtual = async (n: number) => {
+    const result = render(
+      <TableView entries={makeEntries(n)} config={makeConfig({ columns: virtualColumns, levelOrder: [] })} />
+    );
+    await waitFor(() =>
+      expect(result.container.querySelectorAll('[role="row"].grid-cols-subgrid').length).toBeGreaterThan(0)
+    );
+    return result;
+  };
+  const renderedRows = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll<HTMLElement>('[role="row"].grid-cols-subgrid'));
+  const titles = (container: HTMLElement) =>
+    renderedRows(container).map((row) => row.querySelectorAll('[role="cell"]')[1].textContent);
+
+  it("200行を超えると、DOM に描画する行は全行より少ない", async () => {
+    const { container } = await renderVirtual(300);
+    const count = renderedRows(container).length;
+    expect(count).toBeGreaterThan(0);
+    expect(count).toBeLessThan(300);
+  });
+
+  it("仮想スクロールの表は、ブラウザのスクロールアンカーの対象から外す", async () => {
+    // 再読み込み時、Chrome は基準の要素（スクロールアンカー）をたどって位置を復元する。
+    // 仮想スクロールの行は再読み込み後の HTML に無いので、別の要素に行き着いて位置がずれる
+    const { container } = await renderVirtual(300);
+    expect(container.querySelector('[role="table"]')!.className).toContain("[overflow-anchor:none]");
+  });
+
+  it("全行を描画する表では、スクロールアンカーをそのまま使う", async () => {
+    const { container } = await renderVirtual(200);
+    expect(container.querySelector('[role="table"]')!.className).not.toContain("overflow-anchor");
+  });
+
+  it("200行ちょうどなら、全行を描画する", async () => {
+    const { container } = await renderVirtual(200);
+    expect(renderedRows(container)).toHaveLength(200);
+  });
+
+  it("見出しの件数は、描画していない行も含めて絞り込み後の全件で数える", async () => {
+    const { container } = await renderVirtual(300);
+    const firstHeader = () => container.querySelector(".table-grid-header-row")!.textContent;
+    expect(firstHeader()).toBe("★0 (100譜面)");
+    const button = screen.getByRole("button", { name: /^Rating でフィルタ/ });
+    fireEvent.click(within(document.getElementById(button.getAttribute("aria-controls")!)!).getByText("★★★★★"));
+    expect(firstHeader()).toBe("★0 (20譜面)");
+  });
+
+  it("絞り込むと、除外した行は描画しない（hidden で残さない）", async () => {
+    const { container } = await renderVirtual(300);
+    const button = screen.getByRole("button", { name: /^Rating でフィルタ/ });
+    fireEvent.click(within(document.getElementById(button.getAttribute("aria-controls")!)!).getByText("★★★★★"));
+    const rows = renderedRows(container);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((row) => !row.hasAttribute("hidden"))).toBe(true);
+    expect(rows.every((row) => row.querySelectorAll('[role="cell"]')[2].textContent === "★★★★★")).toBe(true);
+  });
+
+  it("列幅を安定させるため、最長の文字列を含む見えない行を描画する", async () => {
+    const data = makeEntries(300);
+    data[250].title = "とても長いタイトルのサンプル行です";
+    const { container } = render(
+      <TableView entries={data} config={makeConfig({ columns: virtualColumns, levelOrder: [] })} />
+    );
+    await waitFor(() => expect(renderedRows(container).length).toBeGreaterThan(0));
+    const sizers = Array.from(container.querySelectorAll<HTMLElement>('[role="presentation"][aria-hidden="true"]'));
+    expect(sizers.some((el) => el.textContent?.includes("とても長いタイトルのサンプル行です"))).toBe(true);
+    expect(sizers.every((el) => el.className.includes("h-0") && el.className.includes("invisible"))).toBe(true);
+  });
+
+  it("下へスクロールすると、後ろの行が描画される", async () => {
+    const { container } = await renderVirtual(300);
+    expect(titles(container)).not.toContain("T299");
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 300 * 40 });
+    fireEvent.scroll(window);
+    expect(titles(container)).toContain("T299");
   });
 });

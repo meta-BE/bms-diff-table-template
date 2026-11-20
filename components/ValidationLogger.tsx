@@ -16,6 +16,11 @@ export function ValidationLogger({ issues, totalEntries }: Props) {
       `[BMS Table] バリデーション: ${issues.length}件の問題を検出`,
     ];
     for (const issue of issues) {
+      // 設定の誤り（rows が空）は特定の行に結び付かないので、件数と行番号を出さない
+      if (issue.rows.length === 0) {
+        lines.push(`  ⚠ カラム "${issue.column}" (${issue.detail}): ${issue.message}`);
+        continue;
+      }
       const rowInfo =
         issue.rows.length === totalEntries
           ? "全エントリ"
