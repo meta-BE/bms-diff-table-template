@@ -129,7 +129,17 @@ function VirtualItems({ items, ...rest }: ItemRenderProps & { items: TableItem[]
 /** 大きな表の本体。ハイドレーションまでは先頭の範囲を固定で描き、マウント後に仮想スクロールへ切り替える */
 export function VirtualTableBody({ items, allRows, ...rest }: VirtualTableBodyProps) {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    // 再読み込み時、ブラウザはページの読み込みが終わるまでスクロール位置の復元を続ける。
+    // その前に仮想スクロールがスクロール位置を書き込むと復元が打ち切られるので、load まで待ってから切り替える
+    if (document.readyState === "complete") {
+      setMounted(true);
+      return;
+    }
+    const onLoad = () => setMounted(true);
+    window.addEventListener("load", onLoad, { once: true });
+    return () => window.removeEventListener("load", onLoad);
+  }, []);
 
   // グリッドの列幅は、描画中の行の内容で決まる。描画する行がスクロールで入れ替わると列幅が揺れるため、
   // 各カラムで最も幅を取りそうな行を、高さ0の見えない行として常に置いておく

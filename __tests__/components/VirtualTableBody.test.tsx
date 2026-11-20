@@ -3,7 +3,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { act } from "react";
 import { renderToString } from "react-dom/server";
 import { hydrateRoot, type Root } from "react-dom/client";
-import { waitFor } from "@testing-library/react";
+import { waitFor, render } from "@testing-library/react";
 import { VirtualTableBody } from "@/components/VirtualTableBody";
 import { buildTableItems } from "@/lib/table-items";
 import type { ClientRow } from "@/lib/client-rows";
@@ -96,5 +96,32 @@ describe("VirtualTableBody - ハイドレーション", () => {
     });
     // 復元されたスクロール位置を、先頭へ書き戻さない
     expect(scrollCalls.some((args) => JSON.stringify(args).includes('"top":0'))).toBe(false);
+  });
+});
+
+describe("VirtualTableBody - 読み込み完了まで待つ", () => {
+  it("ページの読み込み（load）が終わるまでは仮想スクロールに切り替えない", async () => {
+    // 再読み込み時、ブラウザは読み込みが終わるまでスクロール位置の復元を続ける。
+    // その前に仮想スクロールがスクロール位置を書き込むと、復元が打ち切られてしまう
+    Object.defineProperty(document, "readyState", { configurable: true, get: () => "loading" });
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 30000 });
+    Object.defineProperty(window, "pageYOffset", { configurable: true, value: 30000 });
+    window.scrollTo = (() => {}) as typeof window.scrollTo;
+    const { container } = render(body);
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    const maxIndex = () =>
+      Math.max(...Array.from(container.querySelectorAll("[data-index]")).map((el) => Number(el.getAttribute("data-index"))));
+    // 固定の先頭描画のまま（スクロール位置の行ではなく、先頭30件）
+    expect(maxIndex()).toBe(29);
+
+    Object.defineProperty(document, "readyState", { configurable: true, get: () => "complete" });
+    await act(async () => {
+      window.dispatchEvent(new Event("load"));
+    });
+    await waitFor(() => expect(maxIndex()).toBeGreaterThan(700));
+    // @ts-expect-error テストで上書きした readyState を元に戻す
+    delete document.readyState;
   });
 });
