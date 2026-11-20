@@ -15,7 +15,10 @@ let sharedObserver: ResizeObserver | null = null;
 
 function getSharedObserver(): ResizeObserver {
   sharedObserver ??= new ResizeObserver((entries) => {
-    const results = entries.map(({ target }) => [target, target.scrollWidth > target.clientWidth] as const);
+    const results = entries
+      // 幅0は絞り込みで行が hidden になった状態。ここで状態を変えると、再表示のときに付け直しのレイアウトが余計に走る
+      .filter(({ target }) => target.clientWidth > 0)
+      .map(({ target }) => [target, target.scrollWidth > target.clientWidth] as const);
     for (const [target, overflows] of results) appliers.get(target)?.(overflows);
   });
   return sharedObserver;

@@ -125,6 +125,17 @@ describe("EllipsisCell", () => {
     expect(outers[0].hasAttribute("data-tip")).toBe(false);
   });
 
+  it("非表示（幅0）になったセルでは、ツールチップの状態を変えない", () => {
+    const { outers, inners } = renderCells(["長いコメント"]);
+    setSize(inners[0], 200, 100);
+    deliverAll();
+    // 絞り込みで行が hidden になると幅が0になる。ここで外すと、再表示のときに付け直しのレイアウトが余計に走る
+    setSize(inners[0], 0, 0);
+    deliverAll();
+    expect(outers[0].classList.contains("tooltip")).toBe(true);
+    expect(outers[0].getAttribute("data-tip")).toBe("長いコメント");
+  });
+
   it("アンマウントしたセルは監視をやめる", () => {
     const { inners } = renderCells(["a"]);
     cleanup();
