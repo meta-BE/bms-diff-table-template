@@ -1,6 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { inspectFilter, resolveFilterSpec, normalizeFilterValue } from "@/lib/filter";
+import {
+  inspectFilter,
+  resolveFilterSpec,
+  normalizeFilterValue,
+  buildFilterOptions,
+  applyFilter,
+  EMPTY_LABEL,
+  type FilterSpec,
+} from "@/lib/filter";
 import type { ColumnDef } from "@/lib/config";
+import type { ClientRow } from "@/lib/client-rows";
 
 // JSON から読み込まれる不正な設定を再現するためのキャスト
 const asColumn = (c: unknown) => c as ColumnDef;
@@ -110,5 +119,97 @@ describe("normalizeFilterValue", () => {
     expect(normalizeFilterValue(0)).toBe("0");
     expect(normalizeFilterValue(false)).toBe("false");
     expect(normalizeFilterValue("★★★☆☆")).toBe("★★★☆☆");
+  });
+});
+
+// 1カラム（index 0）だけを持つ行を作る
+function rowsWith(values: string[], levels?: string[]): ClientRow[] {
+  return values.map((v, i) => ({
+    md5: `m${i}`,
+    level: levels?.[i] ?? "1",
+    texts: [null],
+    urls: [null],
+    filterValues: [v],
+  }));
+}
+
+const asc: FilterSpec = { key: "k", order: "asc", levelMode: false };
+const desc: FilterSpec = { key: "k", order: "desc", levelMode: false };
+const ctx = { levelOrder: [] as string[], symbol: "Σ" };
+
+describe("buildFilterOptions", () => {
+  it("数値を考慮して昇順に並べる", () => {
+    expect(buildFilterOptions(rowsWith(["10", "2", "1"]), 0, asc, ctx).map((o) => o.value)).toEqual(["1", "2", "10"]);
+  });
+
+  it("desc では逆順にする", () => {
+    expect(buildFilterOptions(rowsWith(["10", "2", "1"]), 0, desc, ctx).map((o) => o.value)).toEqual(["10", "2", "1"]);
+  });
+
+  it("★ の表記は asc で ★★★★★ が先頭になる", () => {
+    const values = ["★★★☆☆", "★☆☆☆☆", "★★★★★", "★★☆☆☆", "★★★★☆"];
+    expect(buildFilterOptions(rowsWith(values), 0, asc, ctx).map((o) => o.value)).toEqual([
+      "★★★★★",
+      "★★★★☆",
+      "★★★☆☆",
+      "★★☆☆☆",
+      "★☆☆☆☆",
+    ]);
+  });
+
+  it("空の値は（空）として最後に置き、desc でも最後のまま", () => {
+    for (const spec of [asc, desc]) {
+      const options = buildFilterOptions(rowsWith(["", "2024", "2025"]), 0, spec, ctx);
+      expect(options.at(-1)).toEqual({ value: "", label: EMPTY_LABEL, count: 1 });
+    }
+    expect(EMPTY_LABEL).toBe("（空）");
+  });
+
+  it("空の値がなければ（空）を出さない", () => {
+    const options = buildFilterOptions(rowsWith(["2024"]), 0, asc, ctx);
+    expect(options.some((o) => o.value === "")).toBe(false);
+  });
+
+  it("count は全行を対象に数え、ラベルは値そのもの", () => {
+    expect(buildFilterOptions(rowsWith(["2025", "2024", "2025"]), 0, asc, ctx)).toEqual([
+      { value: "2024", label: "2024", count: 1 },
+      { value: "2025", label: "2025", count: 2 },
+    ]);
+  });
+
+  it("levelMode では ctx.levelOrder の順に並べ、ラベルを symbol+level にする", () => {
+    const spec: FilterSpec = { key: "level", order: "asc", levelMode: true };
+    const options = buildFilterOptions(rowsWith(["1", "2", "1"]), 0, spec, { levelOrder: ["2", "1"], symbol: "Σ" });
+    expect(options.map((o) => o.value)).toEqual(["2", "1"]);
+    expect(options.map((o) => o.label)).toEqual(["Σ2", "Σ1"]);
+  });
+
+  it("levelMode で desc なら逆順にする", () => {
+    const spec: FilterSpec = { key: "level", order: "desc", levelMode: true };
+    const options = buildFilterOptions(rowsWith(["1", "2"]), 0, spec, { levelOrder: ["2", "1"], symbol: "Σ" });
+    expect(options.map((o) => o.value)).toEqual(["1", "2"]);
+  });
+});
+
+describe("applyFilter", () => {
+  const rows = rowsWith(["2024", "2025", "2026", "", "2024"]);
+
+  it("filter が null なら同じ配列を返す", () => {
+    expect(applyFilter(rows, null)).toBe(rows);
+  });
+
+  it("OR 条件で、一致する行だけを元の順番のまま返す", () => {
+    const result = applyFilter(rows, { columnIndex: 0, values: new Set(["2026", "2024"]) });
+    expect(result.map((r) => r.md5)).toEqual(["m0", "m2", "m4"]);
+  });
+
+  it("（空）を選ぶと、値が空の行を返す", () => {
+    const result = applyFilter(rows, { columnIndex: 0, values: new Set([""]) });
+    expect(result.map((r) => r.md5)).toEqual(["m3"]);
+  });
+
+  it("filterValues が null の行は一致しない", () => {
+    const withNull: ClientRow[] = [{ md5: "n", level: "1", texts: [null], urls: [null], filterValues: [null] }];
+    expect(applyFilter(withNull, { columnIndex: 0, values: new Set([""]) })).toEqual([]);
   });
 });
