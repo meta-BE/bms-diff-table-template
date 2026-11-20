@@ -29,7 +29,8 @@ export function FilterDropdown({ header, options, selected, onToggle, onClear }:
         button.getBoundingClientRect(),
         // maxHeight で縮んだ高さではなく、中身本来の高さ（scrollHeight）に枠線の分を足した高さで決める
         { width: panel.offsetWidth, height: panel.scrollHeight + panel.offsetHeight - panel.clientHeight },
-        { width: window.innerWidth, height: window.innerHeight }
+        // window.innerWidth / innerHeight はスクロールバーの幅を含み、右端や下端に寄せたパネルがスクロールバーの下に入る
+        { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight }
       )
     );
   }, []);
