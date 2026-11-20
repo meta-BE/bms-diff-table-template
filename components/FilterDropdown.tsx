@@ -27,8 +27,8 @@ export function FilterDropdown({ header, options, selected, onToggle, onClear }:
     setPosition(
       computePanelPosition(
         button.getBoundingClientRect(),
-        // maxHeight で縮んだ高さではなく、中身本来の高さで上下どちらに開くかを決める
-        { width: panel.offsetWidth, height: panel.scrollHeight },
+        // maxHeight で縮んだ高さではなく、中身本来の高さ（scrollHeight）に枠線の分を足した高さで決める
+        { width: panel.offsetWidth, height: panel.scrollHeight + panel.offsetHeight - panel.clientHeight },
         { width: window.innerWidth, height: window.innerHeight }
       )
     );

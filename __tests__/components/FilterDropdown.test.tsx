@@ -97,3 +97,20 @@ describe("FilterDropdown", () => {
     expect(button.getAttribute("aria-expanded")).toBe("false");
   });
 });
+
+describe("FilterDropdown - 位置", () => {
+  it("上に開くとき、枠線を含めたパネルの高さでボタンの真上に置く", () => {
+    const { dialog } = setup();
+    const button = screen.getByRole("button", { name: "Published でフィルタ" });
+    button.getBoundingClientRect = () => ({ top: 500, bottom: 520, left: 100 }) as DOMRect;
+    // 中身の高さ 300px ＋ 上下の枠線 1px ずつ
+    Object.defineProperty(dialog, "scrollHeight", { configurable: true, get: () => 300 });
+    Object.defineProperty(dialog, "clientHeight", { configurable: true, get: () => 300 });
+    Object.defineProperty(dialog, "offsetHeight", { configurable: true, get: () => 302 });
+    Object.defineProperty(dialog, "offsetWidth", { configurable: true, get: () => 150 });
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 600 });
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 1000 });
+    fireEvent.click(button);
+    expect(dialog.style.top).toBe(`${500 - 302}px`);
+  });
+});
