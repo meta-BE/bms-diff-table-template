@@ -1,6 +1,6 @@
 // クライアント側（FilterableTable）からも読み込まれるため、lib/config などからは型以外を import しないこと。
 // lib/config はモジュール読み込み時に fs で設定ファイルを読む。
-import type { ColumnDef, FilterOrder } from "@/lib/config";
+import type { ColumnDef, FilterableColumn, FilterOrder } from "@/lib/config";
 import type { ClientRow } from "@/lib/client-rows";
 
 export type FilterSpec = { key: string; order: FilterOrder; levelMode: boolean };
@@ -13,7 +13,7 @@ export const EMPTY_LABEL = "（空）";
 // 年や難易度などの数字を数値として比べる（"2" が "10" より前）
 const collator = new Intl.Collator("ja", { numeric: true });
 
-function defaultKey(column: Exclude<ColumnDef, { type: "badge" }>): string {
+function defaultKey(column: FilterableColumn): string {
   return column.type === "level" ? "level" : column.property;
 }
 
