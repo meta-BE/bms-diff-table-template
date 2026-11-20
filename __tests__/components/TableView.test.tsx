@@ -438,6 +438,15 @@ describe("TableView - フィルタ", () => {
     expect(rowA.hasAttribute("hidden")).toBe(false);
   });
 
+  it("level と levelOrder が数値でも、levelOrder の順に並ぶ（GAS は数値のセルを数値で返す）", () => {
+    const numeric = [
+      { md5: "n1", level: 1, title: "N1", rating: "★", year: "2024" },
+      { md5: "n2", level: 2, title: "N2", rating: "★", year: "2025" },
+    ] as unknown as TableEntry[];
+    const { container } = renderTable({ levelOrder: [2, 1] as unknown as string[] }, numeric);
+    expect(levelHeaders(container)).toEqual(["★2 (1譜面)", "★1 (1譜面)"]);
+  });
+
   it("level や値が数値でも絞り込める", () => {
     const numeric = [
       { md5: "n1", level: 1, title: "N1", rating: "★", year: 2024 },
@@ -460,12 +469,15 @@ describe("TableView - 仮想スクロール", () => {
     { header: "Rating", type: "text", property: "rating", filter: true },
   ];
   const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
+  const originalScrollHeight = Object.getOwnPropertyDescriptor(Element.prototype, "scrollHeight");
 
   beforeAll(() => {
     installPopoverStub();
     // jsdom にはレイアウトがなく高さが0になり、全行が表示範囲に入ってしまうため、行の高さを 40px とみなす
     // （@tanstack/react-virtual は offsetHeight で行の高さを実測する）
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, get: () => 40 });
+    // ページの高さも 0 になり、0 以外のスクロール位置が「行き過ぎ」として無視されるため、実際のページに近い高さにする
+    Object.defineProperty(Element.prototype, "scrollHeight", { configurable: true, get: () => 400 * 40 });
   });
 
   afterEach(() => {
@@ -475,6 +487,7 @@ describe("TableView - 仮想スクロール", () => {
 
   afterAll(() => {
     if (originalOffsetHeight) Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
+    if (originalScrollHeight) Object.defineProperty(Element.prototype, "scrollHeight", originalScrollHeight);
   });
 
   // 仮想スクロールの本体は遅延読み込みなので、行が描画されるまで待つ
