@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeAll, afterEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { render, screen, fireEvent, within, cleanup } from "@testing-library/react";
 import { TableView } from "@/components/TableView";
 import type { TableEntry } from "@/lib/fetch-table-data";
@@ -447,5 +447,79 @@ describe("TableView - フィルタ", () => {
     check("Published", "2024");
     expect(visibleTitles(container)).toEqual(["N1"]);
     expect(levelHeaders(container)).toEqual(["★1 (1譜面)", "★2 (0譜面)"]);
+  });
+});
+
+describe("TableView - 仮想スクロール", () => {
+  const ratings = ["★★★★★", "★★★★☆", "★★★☆☆", "★★☆☆☆", "★☆☆☆☆"];
+  const makeEntries = (n: number): TableEntry[] =>
+    Array.from({ length: n }, (_, i) => ({ md5: `m${i}`, level: String(i % 3), title: `T${i}`, rating: ratings[i % 5] }));
+  const virtualColumns: ColumnDef[] = [
+    { header: "Lv", type: "level" },
+    { header: "Title", type: "text", property: "title" },
+    { header: "Rating", type: "text", property: "rating", filter: true },
+  ];
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
+
+  beforeAll(() => {
+    installPopoverStub();
+    // jsdom にはレイアウトがなく高さが0になり、全行が表示範囲に入ってしまうため、行の高さを 40px とみなす
+    // （@tanstack/react-virtual は offsetHeight で行の高さを実測する）
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, get: () => 40 });
+  });
+
+  afterEach(() => {
+    cleanup();
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 0 });
+  });
+
+  afterAll(() => {
+    if (originalOffsetHeight) Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
+  });
+
+  const renderVirtual = (n: number) =>
+    render(<TableView entries={makeEntries(n)} config={makeConfig({ columns: virtualColumns, levelOrder: [] })} />);
+  const renderedRows = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll<HTMLElement>('[role="row"].grid-cols-subgrid'));
+  const titles = (container: HTMLElement) =>
+    renderedRows(container).map((row) => row.querySelectorAll('[role="cell"]')[1].textContent);
+
+  it("200行を超えると、DOM に描画する行は全行より少ない", () => {
+    const { container } = renderVirtual(300);
+    const count = renderedRows(container).length;
+    expect(count).toBeGreaterThan(0);
+    expect(count).toBeLessThan(300);
+  });
+
+  it("200行ちょうどなら、全行を描画する", () => {
+    const { container } = renderVirtual(200);
+    expect(renderedRows(container)).toHaveLength(200);
+  });
+
+  it("見出しの件数は、描画していない行も含めて絞り込み後の全件で数える", () => {
+    const { container } = renderVirtual(300);
+    const firstHeader = () => container.querySelector(".table-grid-header-row")!.textContent;
+    expect(firstHeader()).toBe("★0 (100譜面)");
+    const button = screen.getByRole("button", { name: /^Rating でフィルタ/ });
+    fireEvent.click(within(document.getElementById(button.getAttribute("aria-controls")!)!).getByText("★★★★★"));
+    expect(firstHeader()).toBe("★0 (20譜面)");
+  });
+
+  it("絞り込むと、除外した行は描画しない（hidden で残さない）", () => {
+    const { container } = renderVirtual(300);
+    const button = screen.getByRole("button", { name: /^Rating でフィルタ/ });
+    fireEvent.click(within(document.getElementById(button.getAttribute("aria-controls")!)!).getByText("★★★★★"));
+    const rows = renderedRows(container);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((row) => !row.hasAttribute("hidden"))).toBe(true);
+    expect(rows.every((row) => row.querySelectorAll('[role="cell"]')[2].textContent === "★★★★★")).toBe(true);
+  });
+
+  it("下へスクロールすると、後ろの行が描画される", () => {
+    const { container } = renderVirtual(300);
+    expect(titles(container)).not.toContain("T299");
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 300 * 40 });
+    fireEvent.scroll(window);
+    expect(titles(container)).toContain("T299");
   });
 });
