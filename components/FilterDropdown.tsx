@@ -92,7 +92,8 @@ export function FilterDropdown({ header, options, selected, onToggle, onClear }:
         popover="auto"
         role="dialog"
         aria-label={`${header} の絞り込み`}
-        className="p-2 rounded-box bg-base-100 text-base-content text-left font-normal shadow-lg border border-base-300 overflow-y-auto"
+        // 見出し側の whitespace-nowrap を引き継ぐと長いラベルが折り返せないので、ここで元に戻す
+        className="p-2 rounded-box bg-base-100 text-base-content text-left font-normal whitespace-normal shadow-lg border border-base-300 overflow-y-auto"
         style={{
           // Popover の UA スタイル（inset: 0; margin: auto）を打ち消して、計算した位置に置く
           position: "fixed",
