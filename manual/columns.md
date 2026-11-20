@@ -30,6 +30,56 @@
 >
 > `ellipsis` は暗黙的に折り返し禁止も適用するため、`nowrap` の併用は不要です。
 
+## フィルタ（`filter`）
+
+`level` / `text` / `link` タイプのカラムに `filter` を指定すると、カラムヘッダーに ▾ ボタンが表示されます。閲覧者はボタンから値を選んで（複数選択可）、表を絞り込めます。
+
+- 選んだ値のどれかに一致する行が表示されます
+- 同時に絞り込めるのは1カラムだけです。別のカラムで値を選ぶと、それまでの選択は解除されます
+- 難易度ごとの見出し「`★1 (n譜面)`」の件数は、絞り込み後の件数になります。0件になった難易度は、見出しだけが表示されます
+- 絞り込みはブラウザ内で行われ、サーバーへの通信は発生しません。ページを再読み込みすると解除されます
+
+| `filter` の値 | 意味 |
+|---|---|
+| 省略 | フィルタなし |
+| `true` | カラム自身の値で絞り込む |
+| `{ "property": "キー名" }` | 同じ行の別のキーの値で絞り込む（例: 公開日のカラムを公開年で絞り込む） |
+| `{ "order": "desc" }` | 選択肢を降順に並べる（既定は `"asc"`） |
+
+`property` と `order` は同時に指定できます。
+
+### 絞り込みに使う値
+
+| カラムタイプ | `property` を省略したとき |
+|---|---|
+| `level` | レベル値。選択肢は表の難易度の並び（`levelOrder`）と同じ順に並び、ラベルは `symbol + level`（例: `★8`）になる |
+| `text` / `link` | そのカラムの `property` の値 |
+| `badge` | 使用できません（指定しても無視され、ブラウザのコンソールに警告が出ます） |
+
+- 選択肢は昇順に並びます。数字は数値として比べます（`2` は `10` より前）
+- 値が空の行は「（空）」という選択肢にまとめられ、並び順に関係なく最後に表示されます
+
+### 設定例
+
+```json
+{ "header": "Rating", "type": "text", "property": "rating", "align": "center", "filter": true },
+{ "header": "Published", "type": "text", "property": "published_at", "nowrap": true,
+  "filter": { "property": "published_year", "order": "desc" } }
+```
+
+> フィルタのボタンは、Popover API に対応したブラウザでのみ表示されます。対応していないブラウザでは、ボタンが表示されないだけで、表は通常どおり使えます。
+
+## 大きな表の表示（仮想スクロール）
+
+全件が **200行を超える表** は、フィルタの設定の有無にかかわらず、画面に見えている行だけを描画する「仮想スクロール」で表示されます。数千件規模の表でも、表示やフィルタの操作が重くならないようにするためです。
+
+仮想スクロールの表には、次の制約があります。
+
+- ブラウザのページ内検索（Ctrl+F / ⌘+F）では、画面の外にある行は見つかりません
+- サーバーが返す HTML には、先頭の一部の行だけが含まれます（残りの行は、ページの読み込み後にブラウザで描画されます）
+
+200行以下の表は、これまでどおり全行を描画するので、ページ内検索で全行を探せます。
+
 ## `level` タイプ
 
 レベル値（symbol + level）を表示します。`columns` 配列内の任意の位置に配置できます。
@@ -105,8 +155,8 @@
     { "header": "Chart", "type": "badge", "label": "DL", "url": "{{url_diff}}", "align": "center" },
     { "header": "Preview", "type": "badge", "label": "▶", "url": "{{url_youtube}}", "align": "center" },
     { "header": "Comment", "type": "text", "property": "comment", "width": "20%", "ellipsis": true },
-    { "header": "Rating", "type": "text", "property": "rating", "align": "center" },
-    { "header": "Published", "type": "text", "property": "published_at", "align": "center", "nowrap": true }
+    { "header": "Rating", "type": "text", "property": "rating", "align": "center", "filter": true },
+    { "header": "Published", "type": "text", "property": "published_at", "align": "center", "nowrap": true, "filter": { "property": "published_year", "order": "desc" } }
   ]
 }
 ```

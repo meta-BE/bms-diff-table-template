@@ -120,3 +120,67 @@ describe("validateEntries", () => {
     expect(result.issues).toHaveLength(0);
   });
 });
+
+describe("validateEntries - filter", () => {
+  const entries: TableEntry[] = [
+    { md5: "a", level: "1", rating: "★", published_year: "2024" },
+    { md5: "b", level: "2", rating: "★" },
+  ];
+  // JSON から読み込まれる不正な設定を再現するためのキャスト
+  const asColumn = (c: unknown) => c as ColumnDef;
+
+  it("badge に filter を指定すると warning になる", () => {
+    const columns = [asColumn({ header: "DL", type: "badge", label: "DL", url: "https://x", filter: true })];
+    expect(validateEntries(entries, columns).issues).toEqual([
+      { level: "warning", column: "DL", detail: "filter", message: "badge カラムでは filter は使えません", rows: [] },
+    ]);
+  });
+
+  it("filter が文字列だと warning になる", () => {
+    const columns = [asColumn({ header: "R", type: "text", property: "rating", filter: "published_year" })];
+    expect(validateEntries(entries, columns).issues).toEqual([
+      {
+        level: "warning",
+        column: "R",
+        detail: "filter",
+        message: "filter の指定が不正です（true または { property, order }）",
+        rows: [],
+      },
+    ]);
+  });
+
+  it("order が不正だと warning になる", () => {
+    const columns = [asColumn({ header: "R", type: "text", property: "rating", filter: { order: "up" } })];
+    expect(validateEntries(entries, columns).issues).toEqual([
+      { level: "warning", column: "R", detail: 'filter.order: "up"', message: "order の値が不正です（asc / desc）", rows: [] },
+    ]);
+  });
+
+  it("filter.property に指定したキーがない行は warning になる", () => {
+    const columns: ColumnDef[] = [
+      { header: "R", type: "text", property: "rating", filter: { property: "published_year" } },
+    ];
+    expect(validateEntries(entries, columns).issues).toEqual([
+      { level: "warning", column: "R", detail: 'filter key: "published_year"', message: "キー未定義", rows: [2] },
+    ]);
+  });
+
+  it("filter: true の text では警告を重複して出さない", () => {
+    const columns: ColumnDef[] = [{ header: "C", type: "text", property: "comment", filter: true }];
+    const { issues } = validateEntries(entries, columns);
+    expect(issues).toHaveLength(1);
+    expect(issues[0].detail).toBe('property: "comment"');
+  });
+
+  it("Lv 特例ではキー未定義のチェックをしない", () => {
+    const columns: ColumnDef[] = [{ header: "Lv", type: "level", filter: true }];
+    expect(validateEntries(entries, columns).issues).toEqual([]);
+  });
+
+  it("level で filter.property を指定し、そのキーがなければ warning になる", () => {
+    const columns: ColumnDef[] = [{ header: "Lv", type: "level", filter: { property: "x" } }];
+    expect(validateEntries(entries, columns).issues).toEqual([
+      { level: "warning", column: "Lv", detail: 'filter key: "x"', message: "キー未定義", rows: [1, 2] },
+    ]);
+  });
+});

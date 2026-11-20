@@ -16,6 +16,10 @@ export interface TableStyle {
   hover: boolean;
 }
 
+export type FilterOrder = "asc" | "desc";
+// true は {} と同じ（カラム自身の値で、昇順）
+export type ColumnFilter = true | { property?: string; order?: FilterOrder };
+
 export interface LevelColumn {
   header: string;
   type: "level";
@@ -23,6 +27,7 @@ export interface LevelColumn {
   align?: Align;
   nowrap?: boolean;
   ellipsis?: boolean;
+  filter?: ColumnFilter;
 }
 
 export interface TextColumn {
@@ -33,6 +38,7 @@ export interface TextColumn {
   align?: Align;
   nowrap?: boolean;
   ellipsis?: boolean;
+  filter?: ColumnFilter;
 }
 
 export interface LinkColumn {
@@ -44,6 +50,7 @@ export interface LinkColumn {
   align?: Align;
   nowrap?: boolean;
   ellipsis?: boolean;
+  filter?: ColumnFilter;
 }
 
 export interface BadgeColumn {
@@ -58,6 +65,7 @@ export interface BadgeColumn {
 }
 
 export type ColumnDef = LevelColumn | TextColumn | LinkColumn | BadgeColumn;
+export type FilterableColumn = LevelColumn | TextColumn | LinkColumn;
 
 export interface TableConfig {
   name: string;
