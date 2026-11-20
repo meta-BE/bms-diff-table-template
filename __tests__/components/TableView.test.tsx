@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
-import { render, screen, fireEvent, within, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, within, cleanup, waitFor } from "@testing-library/react";
 import { TableView } from "@/components/TableView";
 import type { TableEntry } from "@/lib/fetch-table-data";
 import type { ColumnDef, TableConfig } from "@/lib/config";
@@ -477,27 +477,35 @@ describe("TableView - 仮想スクロール", () => {
     if (originalOffsetHeight) Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
   });
 
-  const renderVirtual = (n: number) =>
-    render(<TableView entries={makeEntries(n)} config={makeConfig({ columns: virtualColumns, levelOrder: [] })} />);
+  // 仮想スクロールの本体は遅延読み込みなので、行が描画されるまで待つ
+  const renderVirtual = async (n: number) => {
+    const result = render(
+      <TableView entries={makeEntries(n)} config={makeConfig({ columns: virtualColumns, levelOrder: [] })} />
+    );
+    await waitFor(() =>
+      expect(result.container.querySelectorAll('[role="row"].grid-cols-subgrid').length).toBeGreaterThan(0)
+    );
+    return result;
+  };
   const renderedRows = (container: HTMLElement) =>
     Array.from(container.querySelectorAll<HTMLElement>('[role="row"].grid-cols-subgrid'));
   const titles = (container: HTMLElement) =>
     renderedRows(container).map((row) => row.querySelectorAll('[role="cell"]')[1].textContent);
 
-  it("200行を超えると、DOM に描画する行は全行より少ない", () => {
-    const { container } = renderVirtual(300);
+  it("200行を超えると、DOM に描画する行は全行より少ない", async () => {
+    const { container } = await renderVirtual(300);
     const count = renderedRows(container).length;
     expect(count).toBeGreaterThan(0);
     expect(count).toBeLessThan(300);
   });
 
-  it("200行ちょうどなら、全行を描画する", () => {
-    const { container } = renderVirtual(200);
+  it("200行ちょうどなら、全行を描画する", async () => {
+    const { container } = await renderVirtual(200);
     expect(renderedRows(container)).toHaveLength(200);
   });
 
-  it("見出しの件数は、描画していない行も含めて絞り込み後の全件で数える", () => {
-    const { container } = renderVirtual(300);
+  it("見出しの件数は、描画していない行も含めて絞り込み後の全件で数える", async () => {
+    const { container } = await renderVirtual(300);
     const firstHeader = () => container.querySelector(".table-grid-header-row")!.textContent;
     expect(firstHeader()).toBe("★0 (100譜面)");
     const button = screen.getByRole("button", { name: /^Rating でフィルタ/ });
@@ -505,8 +513,8 @@ describe("TableView - 仮想スクロール", () => {
     expect(firstHeader()).toBe("★0 (20譜面)");
   });
 
-  it("絞り込むと、除外した行は描画しない（hidden で残さない）", () => {
-    const { container } = renderVirtual(300);
+  it("絞り込むと、除外した行は描画しない（hidden で残さない）", async () => {
+    const { container } = await renderVirtual(300);
     const button = screen.getByRole("button", { name: /^Rating でフィルタ/ });
     fireEvent.click(within(document.getElementById(button.getAttribute("aria-controls")!)!).getByText("★★★★★"));
     const rows = renderedRows(container);
@@ -515,8 +523,20 @@ describe("TableView - 仮想スクロール", () => {
     expect(rows.every((row) => row.querySelectorAll('[role="cell"]')[2].textContent === "★★★★★")).toBe(true);
   });
 
-  it("下へスクロールすると、後ろの行が描画される", () => {
-    const { container } = renderVirtual(300);
+  it("列幅を安定させるため、最長の文字列を含む見えない行を描画する", async () => {
+    const data = makeEntries(300);
+    data[250].title = "とても長いタイトルのサンプル行です";
+    const { container } = render(
+      <TableView entries={data} config={makeConfig({ columns: virtualColumns, levelOrder: [] })} />
+    );
+    await waitFor(() => expect(renderedRows(container).length).toBeGreaterThan(0));
+    const sizers = Array.from(container.querySelectorAll<HTMLElement>('[role="presentation"][aria-hidden="true"]'));
+    expect(sizers.some((el) => el.textContent?.includes("とても長いタイトルのサンプル行です"))).toBe(true);
+    expect(sizers.every((el) => el.className.includes("h-0") && el.className.includes("invisible"))).toBe(true);
+  });
+
+  it("下へスクロールすると、後ろの行が描画される", async () => {
+    const { container } = await renderVirtual(300);
     expect(titles(container)).not.toContain("T299");
     Object.defineProperty(window, "scrollY", { configurable: true, value: 300 * 40 });
     fireEvent.scroll(window);
