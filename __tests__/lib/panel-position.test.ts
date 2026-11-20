@@ -9,6 +9,7 @@ describe("computePanelPosition", () => {
       top: 120,
       left: 50,
       maxHeight: 800 - 120 - 8,
+      maxWidth: 1000 - 16,
       placement: "below",
     });
   });
@@ -19,7 +20,7 @@ describe("computePanelPosition", () => {
       { width: 200, height: 300 },
       { width: 1000, height: 700 }
     );
-    expect(pos).toEqual({ top: 300, left: 50, maxHeight: 600 - 8, placement: "above" });
+    expect(pos).toEqual({ top: 300, left: 50, maxHeight: 600 - 8, maxWidth: 1000 - 16, placement: "above" });
   });
 
   it("上下どちらにも収まらなければ、空きが広いほうに開き、maxHeight をその空きにする", () => {
@@ -28,7 +29,7 @@ describe("computePanelPosition", () => {
       { width: 200, height: 500 },
       { width: 1000, height: 300 }
     );
-    expect(pos).toEqual({ top: 120, left: 50, maxHeight: 300 - 120 - 8, placement: "below" });
+    expect(pos).toEqual({ top: 120, left: 50, maxHeight: 300 - 120 - 8, maxWidth: 1000 - 16, placement: "below" });
   });
 
   it("上に開いてパネルが空きより高い場合、top は余白より上に出ない", () => {
@@ -50,6 +51,12 @@ describe("computePanelPosition", () => {
 
   it("左端では left が 8 より小さくならない", () => {
     expect(computePanelPosition({ top: 0, bottom: 20, left: 2 }, { width: 200, height: 100 }, viewport).left).toBe(8);
+  });
+
+  it("パネルの最大幅は、画面の幅から左右の余白を引いた値になる", () => {
+    expect(computePanelPosition({ top: 0, bottom: 20, left: 300 }, { width: 1200, height: 100 }, { width: 375, height: 800 }).maxWidth).toBe(
+      375 - 16
+    );
   });
 
   it("パネルの幅が画面より広ければ left は 8", () => {

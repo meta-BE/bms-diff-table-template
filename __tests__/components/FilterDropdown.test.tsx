@@ -98,6 +98,20 @@ describe("FilterDropdown", () => {
   });
 });
 
+describe("FilterDropdown - 幅", () => {
+  it("開いたパネルの最大幅を画面内に収め、長いラベルは折り返す", () => {
+    const { dialog } = setup();
+    const button = screen.getByRole("button", { name: "Published でフィルタ" });
+    button.getBoundingClientRect = () => ({ top: 0, bottom: 20, left: 100 }) as DOMRect;
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 800 });
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 375 });
+    fireEvent.click(button);
+    expect(dialog.style.maxWidth).toBe(`${375 - 16}px`);
+    const label = within(dialog).getAllByRole("checkbox", { hidden: true })[0].closest("label")!;
+    expect(label.className).not.toContain("whitespace-nowrap");
+  });
+});
+
 describe("FilterDropdown - 位置", () => {
   it("上に開くとき、枠線を含めたパネルの高さでボタンの真上に置く", () => {
     const { dialog } = setup();

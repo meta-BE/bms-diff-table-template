@@ -101,6 +101,7 @@ export function FilterDropdown({ header, options, selected, onToggle, onClear }:
           top: position?.top,
           left: position?.left,
           maxHeight: position?.maxHeight,
+          maxWidth: position?.maxWidth,
           // 開いた直後、位置が決まるまでの1フレームだけ、ずれた位置に表示されるのを防ぐ
           // （閉じている間は Popover の UA スタイルで display: none になるので指定しない）
           visibility: open && !position ? "hidden" : undefined,
@@ -109,14 +110,16 @@ export function FilterDropdown({ header, options, selected, onToggle, onClear }:
         <ul className="flex flex-col gap-1 min-w-32">
           {options.map((option) => (
             <li key={option.value}>
-              <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap px-1 py-0.5">
+              <label className="flex items-start gap-2 cursor-pointer px-1 py-0.5">
                 <input
                   type="checkbox"
                   className="checkbox checkbox-sm"
                   checked={selected.has(option.value)}
                   onChange={() => onToggle(option.value)}
                 />
-                <span>{option.label}</span> <span className="opacity-60">({option.count})</span>
+                <span className="min-w-0 break-words">
+                  <span>{option.label}</span> <span className="opacity-60 whitespace-nowrap">({option.count})</span>
+                </span>
               </label>
             </li>
           ))}

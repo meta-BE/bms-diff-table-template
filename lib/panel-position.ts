@@ -8,6 +8,8 @@ export interface PanelPosition {
   top: number;
   left: number;
   maxHeight: number;
+  /** 値の長いカラムでもパネルが画面からはみ出さないよう、幅にも上限を設ける */
+  maxWidth: number;
   placement: "below" | "above";
 }
 
@@ -27,8 +29,9 @@ export function computePanelPosition(
   const maxHeight = placement === "below" ? spaceBelow : spaceAbove;
   const top = placement === "below" ? anchor.bottom : Math.max(margin, anchor.top - Math.min(panel.height, maxHeight));
 
-  const maxLeft = viewport.width - margin - panel.width;
+  const maxWidth = viewport.width - margin * 2;
+  const maxLeft = viewport.width - margin - Math.min(panel.width, maxWidth);
   const left = Math.max(margin, Math.min(anchor.left, maxLeft));
 
-  return { top, left, maxHeight, placement };
+  return { top, left, maxHeight, maxWidth, placement };
 }
