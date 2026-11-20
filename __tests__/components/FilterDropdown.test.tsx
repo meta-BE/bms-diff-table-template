@@ -52,6 +52,11 @@ describe("FilterDropdown", () => {
     expect(classes).toContain("supports-[selector(:popover-open)]:inline-flex");
   });
 
+  it("パネルは見出しの折り返し禁止を引き継がない（長いラベルを折り返せるようにする）", () => {
+    const { dialog } = setup();
+    expect(dialog.className).toContain("whitespace-normal");
+  });
+
   it("パネルは popover=auto・role=dialog で、aria-label は「Published の絞り込み」", () => {
     const { dialog } = setup();
     expect(dialog.getAttribute("role")).toBe("dialog");

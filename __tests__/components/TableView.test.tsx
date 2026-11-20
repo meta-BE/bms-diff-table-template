@@ -334,6 +334,15 @@ describe("TableView - フィルタ", () => {
     fireEvent.click(within(dialogOf(header, index)).getByText(label));
   const filterButton = (header: string) => screen.getByRole("button", { name: new RegExp(`^${header} でフィルタ`) });
 
+  it("見出しの文字とフィルタボタンを、折り返さないひとつの要素にまとめる", () => {
+    renderTable();
+    const button = filterButton("Published");
+    const wrapper = button.parentElement!;
+    expect(wrapper.className).toContain("whitespace-nowrap");
+    expect(wrapper.textContent).toContain("Published");
+    expect(wrapper.closest('[role="columnheader"]')).not.toBeNull();
+  });
+
   it("filter を設定したカラムの見出しにだけ、フィルタボタンが出る", () => {
     renderTable();
     expect(screen.getAllByRole("button", { name: /でフィルタ/ }).map((b) => b.getAttribute("aria-label"))).toEqual([

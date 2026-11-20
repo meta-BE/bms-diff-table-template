@@ -83,15 +83,20 @@ export function FilterableTable({ rows, config }: { rows: ClientRow[]; config: F
       <div className="contents" role="row" aria-rowindex={items ? 1 : undefined}>
         {columns.map((col, i) => (
           <div key={`${col.header}-${i}`} className="font-bold bg-base-200 text-center p-2" role="columnheader">
-            {col.header}
-            {optionsByColumn[i] && (
-              <FilterDropdown
-                header={col.header}
-                options={optionsByColumn[i]}
-                selected={filter?.columnIndex === i ? filter.values : NO_SELECTION}
-                onToggle={(value) => toggleValue(i, value)}
-                onClear={() => clearColumn(i)}
-              />
+            {optionsByColumn[i] ? (
+              // 見出しの文字と▾が2行に分かれないよう、折り返さないひとつの要素にまとめる（列幅はこの幅に合わせて広がる）
+              <span className="inline-flex items-center justify-center whitespace-nowrap">
+                {col.header}
+                <FilterDropdown
+                  header={col.header}
+                  options={optionsByColumn[i]}
+                  selected={filter?.columnIndex === i ? filter.values : NO_SELECTION}
+                  onToggle={(value) => toggleValue(i, value)}
+                  onClear={() => clearColumn(i)}
+                />
+              </span>
+            ) : (
+              col.header
             )}
           </div>
         ))}
