@@ -512,6 +512,18 @@ describe("TableView - 仮想スクロール", () => {
     expect(count).toBeLessThan(300);
   });
 
+  it("仮想スクロールの表は、ブラウザのスクロールアンカーの対象から外す", async () => {
+    // 再読み込み時、Chrome は基準の要素（スクロールアンカー）をたどって位置を復元する。
+    // 仮想スクロールの行は再読み込み後の HTML に無いので、別の要素に行き着いて位置がずれる
+    const { container } = await renderVirtual(300);
+    expect(container.querySelector('[role="table"]')!.className).toContain("[overflow-anchor:none]");
+  });
+
+  it("全行を描画する表では、スクロールアンカーをそのまま使う", async () => {
+    const { container } = await renderVirtual(200);
+    expect(container.querySelector('[role="table"]')!.className).not.toContain("overflow-anchor");
+  });
+
   it("200行ちょうどなら、全行を描画する", async () => {
     const { container } = await renderVirtual(200);
     expect(renderedRows(container)).toHaveLength(200);

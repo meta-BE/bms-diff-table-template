@@ -73,7 +73,13 @@ export function FilterableTable({ rows, config }: { rows: ClientRow[]; config: F
   );
 
   return (
-    <div className="table-grid w-full" role="table" aria-rowcount={items ? items.length + 1 : undefined}>
+    <div
+      // 仮想スクロールの表は、ブラウザのスクロールアンカーの対象から外す。再読み込み時、Chrome は基準の要素を
+      // たどって位置を復元するが、仮想スクロールの行は再読み込み直後の HTML に無いので、別の要素に行き着いてずれる
+      className={items ? "table-grid w-full [overflow-anchor:none]" : "table-grid w-full"}
+      role="table"
+      aria-rowcount={items ? items.length + 1 : undefined}
+    >
       <div className="contents" role="row" aria-rowindex={items ? 1 : undefined}>
         {columns.map((col, i) => (
           <div key={`${col.header}-${i}`} className="font-bold bg-base-200 text-center p-2" role="columnheader">
